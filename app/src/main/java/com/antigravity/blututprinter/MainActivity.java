@@ -20,7 +20,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Switch;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
     // UI Elements
     private TextView tvServerStatus;
     private TextView tvPrinterStatus;
-    private Switch swStartServer;
-    private Switch swStartOnBoot;
+    private SwitchMaterial swStartServer;
+    private SwitchMaterial swStartOnBoot;
     private EditText etServerPort;
     private Spinner spPrinters;
     private Button btnConnect;
