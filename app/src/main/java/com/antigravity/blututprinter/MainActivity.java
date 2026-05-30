@@ -213,10 +213,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void registerReceivers() {
-        registerReceiver(statusReceiver, new IntentFilter(PrintServerService.ACTION_STATUS_CHANGE));
-        
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(discoveryReceiver, filter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(statusReceiver, new IntentFilter(PrintServerService.ACTION_STATUS_CHANGE), Context.RECEIVER_NOT_EXPORTED);
+            
+            IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+            registerReceiver(discoveryReceiver, filter, Context.RECEIVER_EXPORTED);
+        } else {
+            registerReceiver(statusReceiver, new IntentFilter(PrintServerService.ACTION_STATUS_CHANGE));
+            
+            IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+            registerReceiver(discoveryReceiver, filter);
+        }
     }
 
     private void unregisterReceivers() {

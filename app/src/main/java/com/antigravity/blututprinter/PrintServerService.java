@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Base64;
@@ -52,7 +53,11 @@ public class PrintServerService extends Service {
         port = prefs.getInt("server_port", 6801);
 
         createNotificationChannel();
-        startForeground(NOTIFICATION_ID, buildNotification("Starting printer bridge..."));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, buildNotification("Starting printer bridge..."), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification("Starting printer bridge..."));
+        }
 
         startServer();
 
