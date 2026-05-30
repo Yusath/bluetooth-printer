@@ -42,6 +42,6 @@ We have redesigned the dashboard into **4 instantaneous Tab Menus** locked to th
 
 ## 🛠️ Installation Instructions
 
-1.  Download the **`app-debug.apk`** attached to this release.
+1.  Download the **`app-release.apk`** attached to this release.
 2.  Install it manually on your Android device (this establishes the new base build with updater support).
 3.  Future updates will be detected, downloaded, and installed automatically!
