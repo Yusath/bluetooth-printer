@@ -123,6 +123,16 @@ public class VirtualPrinterService extends PrintService {
                 PdfRenderer renderer = null;
                 File tempFile = null;
                 try {
+                    // Load print settings from SharedPreferences
+                    android.content.SharedPreferences prefs = getSharedPreferences("BlututPrinterPrefs", MODE_PRIVATE);
+                    int targetWidth = prefs.getInt("paper_width", 384);
+                    int contrastThreshold = prefs.getInt("print_contrast", 128);
+                    int feedLines = prefs.getInt("extra_feed", 3);
+                    boolean isThrottled = prefs.getBoolean("buffer_throttle", false);
+                    
+                    // Update printer manager throttling state
+                    printer.setThrottled(isThrottled);
+
                     pfd = printJob.getDocument().getData();
                     
                     // Copy non-seekable FD to a temporary seekable file (required by PdfRenderer)
@@ -146,8 +156,6 @@ public class VirtualPrinterService extends PrintService {
                     for (int i = 0; i < pageCount; i++) {
                         PdfRenderer.Page page = renderer.openPage(i);
                         
-                        // Standard resolution (384px width for 58mm printer compatibility)
-                        int targetWidth = 384; 
                         double scale = (double) targetWidth / page.getWidth();
                         int targetHeight = (int) (page.getHeight() * scale);
 
@@ -157,8 +165,8 @@ public class VirtualPrinterService extends PrintService {
                         page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
                         page.close();
 
-                        // Dither and convert to ESC/POS raster bit command
-                        byte[] escPosData = EscPosDriver.bitmapToEscPos(bitmap, targetWidth);
+                        // Dither and convert to ESC/POS raster bit command with dynamic threshold and custom extra feeds
+                        byte[] escPosData = EscPosDriver.bitmapToEscPos(bitmap, targetWidth, contrastThreshold, feedLines);
                         
                         // Send data to bluetooth printer
                         boolean ok = printer.sendData(escPosData);

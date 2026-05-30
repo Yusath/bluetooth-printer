@@ -51,6 +51,37 @@
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
 
+            <!-- BLUETOOTH STATUS WARNING BANNER -->
+            <LinearLayout
+                android:id="@+id/llBluetoothWarning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/border_glass"
+                android:backgroundTint="#2D1B22"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_scan"
+                    app:tint="@color/status_red"
+                    android:layout_marginEnd="10dp"
+                    android:contentDescription="Warning"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/bt_turned_off"
+                    android:textColor="@color/status_red"
+                    android:textSize="13sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
             <!-- SERVER SETTINGS CARD -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -238,6 +269,171 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- ADVANCED SETTINGS CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/border_glass"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/bg_slate_card"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_settings"
+                            app:tint="@color/accent_blue"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Advanced Settings"/>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="Advanced Settings"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+                    </LinearLayout>
+
+                    <!-- Auto Update Switch -->
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swAutoUpdate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/auto_update"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        app:useMaterialThemeColors="false"
+                        app:thumbTint="@color/accent_blue"
+                        app:trackTint="@color/border_glass"
+                        android:layout_marginBottom="4dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCheckUpdate"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:text="@string/check_update_btn"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="12sp"
+                        android:layout_gravity="end"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Buffer Throttling Switch -->
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swBufferThrottle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/buffer_throttle"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        app:useMaterialThemeColors="false"
+                        app:thumbTint="@color/accent_blue"
+                        app:trackTint="@color/border_glass"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Paper Size Spinner Option -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="@string/paper_size"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"/>
+
+                        <FrameLayout
+                            android:layout_width="140dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/border_glass"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp">
+
+                            <Spinner
+                                android:id="@+id/spPaperSize"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:spinnerMode="dropdown"
+                                android:textColor="@color/text_primary"/>
+                        </FrameLayout>
+                    </LinearLayout>
+
+                    <!-- Extra Feed Lines Spinner Option -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="@string/extra_feed"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"/>
+
+                        <FrameLayout
+                            android:layout_width="140dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/border_glass"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp">
+
+                            <Spinner
+                                android:id="@+id/spFeedLines"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:spinnerMode="dropdown"
+                                android:textColor="@color/text_primary"/>
+                        </FrameLayout>
+                    </LinearLayout>
+
+                    <!-- Print Contrast Slider -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/print_contrast"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="8dp"/>
+
+                    <SeekBar
+                        android:id="@+id/sbContrast"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:max="100"
+                        android:progress="50"
+                        android:thumbTint="@color/accent_blue"
+                        android:progressTint="@color/accent_blue"
+                        android:progressBackgroundTint="@color/border_glass"
+                        android:layout_marginBottom="8dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- PRINTER CONNECTION CARD -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -352,7 +548,90 @@
                         app:strokeColor="@color/accent_blue"
                         app:strokeWidth="1.5dp"
                         app:cornerRadius="24dp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="10dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTestImagePrint"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="@string/test_image_print"
+                        android:textColor="@color/accent_blue"
+                        app:strokeColor="@color/accent_blue"
+                        app:strokeWidth="1.5dp"
+                        app:cornerRadius="24dp"
                         android:textStyle="bold"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ACTIVITY LOGS CONSOLE CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/border_glass"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/bg_slate_card"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_server"
+                            app:tint="@color/accent_blue"
+                            android:layout_marginEnd="12dp"
+                            android:contentDescription="Logs"/>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="@string/activity_logs"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"/>
+                        
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnClearLogs"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="Clear"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp"/>
+                    </LinearLayout>
+
+                    <ScrollView
+                        android:id="@+id/svLogs"
+                        android:layout_width="match_parent"
+                        android:layout_height="180dp"
+                        android:background="#0B0F19"
+                        android:padding="10dp">
+
+                        <TextView
+                            android:id="@+id/tvLogs"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:text="[System info] Bridge dashboard ready.\n"
+                            android:textColor="@color/status_green"
+                            android:textSize="11sp"/>
+                    </ScrollView>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

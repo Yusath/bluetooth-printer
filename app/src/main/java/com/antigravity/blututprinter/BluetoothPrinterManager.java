@@ -27,6 +27,7 @@ public class BluetoothPrinterManager {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private boolean isConnecting = false;
+    private volatile boolean isThrottled = false;
 
     public interface ConnectionCallback {
         void onSuccess();
@@ -42,6 +43,14 @@ public class BluetoothPrinterManager {
             instance = new BluetoothPrinterManager();
         }
         return instance;
+    }
+
+    public void setThrottled(boolean enabled) {
+        this.isThrottled = enabled;
+    }
+
+    public boolean isThrottled() {
+        return isThrottled;
     }
 
     public BluetoothAdapter getBluetoothAdapter() {
@@ -80,6 +89,26 @@ public class BluetoothPrinterManager {
             return connectedDevice.getAddress();
         }
         return null;
+    }
+
+    public void connectToDefault(Context context, final ConnectionCallback callback) {
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            if (callback != null) callback.onFailure("Bluetooth is disabled.");
+            return;
+        }
+        android.content.SharedPreferences prefs = context.getSharedPreferences("BlututPrinterPrefs", Context.MODE_PRIVATE);
+        String address = prefs.getString("default_printer_address", "");
+        if (address.isEmpty()) {
+            if (callback != null) callback.onFailure("No default printer saved.");
+            return;
+        }
+
+        try {
+            BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+            connect(device, callback);
+        } catch (Exception e) {
+            if (callback != null) callback.onFailure("Failed to load default printer: " + e.getMessage());
+        }
     }
 
     public synchronized void connect(final BluetoothDevice device, final ConnectionCallback callback) {
@@ -145,8 +174,26 @@ public class BluetoothPrinterManager {
             return false;
         }
         try {
-            outputStream.write(data);
-            outputStream.flush();
+            if (isThrottled && data.length > 512) {
+                int offset = 0;
+                while (offset < data.length) {
+                    int chunkSize = Math.min(512, data.length - offset);
+                    outputStream.write(data, offset, chunkSize);
+                    outputStream.flush();
+                    offset += chunkSize;
+                    if (offset < data.length) {
+                        try {
+                            Thread.sleep(80);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
+            } else {
+                outputStream.write(data);
+                outputStream.flush();
+            }
             return true;
         } catch (IOException e) {
             Log.e(TAG, "Failed to send data, disconnecting", e);

@@ -14,6 +14,20 @@ public class EscPosDriver {
      * @return ESC/POS byte array ready to be sent directly to the printer.
      */
     public static byte[] bitmapToEscPos(Bitmap src, int targetWidth) {
+        return bitmapToEscPos(src, targetWidth, 128, 3);
+    }
+
+    /**
+     * Converts a Bitmap into an ESC/POS raster bit image byte array using Floyd-Steinberg Dithering.
+     * Uses the standard GS v 0 command (0x1D 0x76 0x30) which is widely compatible with all thermal printers.
+     *
+     * @param src The source Bitmap.
+     * @param targetWidth The desired print width in pixels (typically 384 for 58mm or 576 for 80mm).
+     * @param contrastThreshold The Floyd-Steinberg grey threshold (typically 128). Lower values print lighter, higher print darker.
+     * @param feedLines The number of extra feed lines after printing (typically 3).
+     * @return ESC/POS byte array ready to be sent directly to the printer.
+     */
+    public static byte[] bitmapToEscPos(Bitmap src, int targetWidth, int contrastThreshold, int feedLines) {
         if (src == null) return new byte[0];
 
         // 1. Scale bitmap to target width maintaining aspect ratio
@@ -46,7 +60,7 @@ public class EscPosDriver {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int oldPixel = greyscale[y][x];
-                int newPixel = oldPixel < 128 ? 0 : 255;
+                int newPixel = oldPixel < contrastThreshold ? 0 : 255;
                 monochrome[y][x] = (newPixel == 0);
                 int err = oldPixel - newPixel;
 
@@ -103,9 +117,11 @@ public class EscPosDriver {
         }
 
         // Feed paper
-        output.write(0x1B); // ESC
-        output.write(0x64); // d
-        output.write(0x03); // Feed 3 lines
+        if (feedLines > 0) {
+            output.write(0x1B); // ESC
+            output.write(0x64); // d
+            output.write(feedLines & 0xFF); // Feed custom lines
+        }
 
         scaled.recycle();
 

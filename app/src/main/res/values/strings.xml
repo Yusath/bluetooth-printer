@@ -11,4 +11,13 @@
     <string name="test_print">Send Test Receipt</string>
     <string name="status_server">Server status:</string>
     <string name="status_printer">Printer status:</string>
+    <string name="auto_update">Auto-Check for Updates</string>
+    <string name="check_update_btn">Check for Update</string>
+    <string name="activity_logs">Activity Log Dashboard</string>
+    <string name="paper_size">Paper Size:</string>
+    <string name="print_contrast">Print Contrast:</string>
+    <string name="extra_feed">Post-Print Feed:</string>
+    <string name="buffer_throttle">Buffer Throttling (Anti-Overflow)</string>
+    <string name="test_image_print">Print Calibration Image</string>
+    <string name="bt_turned_off">Bluetooth is disabled. Tap to enable.</string>
 </resources>

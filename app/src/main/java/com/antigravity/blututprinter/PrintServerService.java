@@ -34,11 +34,21 @@ public class PrintServerService extends Service {
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_PORT = "port";
 
+    public static final String ACTION_LOG_EVENT = "com.antigravity.blututprinter.LOG_EVENT";
+    public static final String EXTRA_LOG = "log";
+
     private ServerSocket serverSocket;
     private boolean isRunning = false;
     private int port = 6801;
     private ExecutorService serverExecutor;
     private BluetoothPrinterManager printerManager;
+
+    private void logEvent(String message) {
+        Log.d(TAG, message);
+        Intent intent = new Intent(ACTION_LOG_EVENT);
+        intent.putExtra(EXTRA_LOG, message);
+        sendBroadcast(intent);
+    }
 
     @Override
     public void onCreate() {
@@ -73,7 +83,7 @@ public class PrintServerService extends Service {
             public void run() {
                 try {
                     serverSocket = new ServerSocket(port);
-                    Log.d(TAG, "Server started on port " + port);
+                    logEvent("Server started on port " + port);
                     broadcastStatus(true, port);
                     updateNotification("Printer bridge is running on port " + port);
 
@@ -87,7 +97,7 @@ public class PrintServerService extends Service {
                         });
                     }
                 } catch (IOException e) {
-                    Log.e(TAG, "Server socket error", e);
+                    logEvent("Server socket error: " + e.getMessage());
                     stopServer();
                 }
             }
@@ -102,6 +112,7 @@ public class PrintServerService extends Service {
             }
         } catch (IOException ignored) {}
         serverSocket = null;
+        logEvent("Server stopped.");
         broadcastStatus(false, port);
         stopForeground(true);
         stopSelf();
@@ -125,23 +136,36 @@ public class PrintServerService extends Service {
             if (headerStr.startsWith("POST ") || headerStr.startsWith("OPTIONS ") || headerStr.startsWith("GET ")) {
                 handleHttpRequest(socket, headerStr, buffer, bytesRead, in, out);
             } else {
+                logEvent("Received raw TCP connection from " + socket.getRemoteSocketAddress());
                 ByteArrayOutputStream rawBytes = new ByteArrayOutputStream();
                 rawBytes.write(buffer, 0, bytesRead);
                 
                 byte[] tempBuffer = new byte[4096];
                 int read;
-                while (in.available() > 0 && (read = in.read(tempBuffer)) != -1) {
-                    rawBytes.write(tempBuffer, 0, read);
+                socket.setSoTimeout(300); // 300ms read timeout to prevent blocking if POS keeps connection open
+                try {
+                    while ((read = in.read(tempBuffer)) != -1) {
+                        rawBytes.write(tempBuffer, 0, read);
+                    }
+                } catch (java.net.SocketTimeoutException ignored) {
+                    // Timeout expected when done sending but has not closed yet
                 }
                 
-                printBytes(rawBytes.toByteArray());
+                byte[] printedData = rawBytes.toByteArray();
+                logEvent("Processing raw TCP print job (" + printedData.length + " bytes)");
+                boolean success = printBytes(printedData);
+                if (success) {
+                    logEvent("Raw TCP print job printed successfully.");
+                } else {
+                    logEvent("Raw TCP print job failed: printer is disconnected.");
+                }
                 
                 out.write("OK\n".getBytes());
                 out.flush();
             }
 
         } catch (IOException e) {
-            Log.e(TAG, "Error handling client socket", e);
+            logEvent("Error handling client: " + e.getMessage());
         } finally {
             try {
                 if (in != null) in.close();
@@ -230,6 +254,8 @@ public class PrintServerService extends Service {
         byte[] bodyBytes = bodyStream.toByteArray();
         boolean success = false;
         
+        logEvent("HTTP POST print request from " + socket.getRemoteSocketAddress());
+
         String bodyString = new String(bodyBytes, 0, Math.min(bodyBytes.length, 1024));
         if (bodyString.trim().startsWith("{")) {
             try {
@@ -242,6 +268,7 @@ public class PrintServerService extends Service {
                     if (startQuote != -1 && endQuote != -1) {
                         String b64Value = trimmed.substring(startQuote + 1, endQuote);
                         byte[] decoded = Base64.decode(b64Value, Base64.DEFAULT);
+                        logEvent("Printing base64 payload (" + decoded.length + " bytes)");
                         success = printBytes(decoded);
                     }
                 } else if (trimmed.contains("\"text\"")) {
@@ -252,19 +279,23 @@ public class PrintServerService extends Service {
                     if (startQuote != -1 && endQuote != -1) {
                         String textValue = trimmed.substring(startQuote + 1, endQuote);
                         textValue = textValue.replace("\\n", "\n").replace("\\r", "\r").replace("\\t", "\t");
+                        logEvent("Printing text payload (" + textValue.length() + " chars)");
                         success = printBytes(textValue.getBytes());
                     }
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Error manually parsing print JSON request", e);
+                logEvent("JSON parse error: " + e.getMessage());
             }
         } else {
+            logEvent("Printing raw HTTP payload (" + bodyBytes.length + " bytes)");
             success = printBytes(bodyBytes);
         }
 
         if (success) {
+            logEvent("HTTP print job succeeded.");
             sendHttpResponse(out, 200, "{\"success\":true,\"message\":\"Printed successfully\"}");
         } else {
+            logEvent("HTTP print job failed: printer is disconnected.");
             sendHttpResponse(out, 500, "{\"success\":false,\"error\":\"Printer is not connected or failed to print\"}");
         }
     }
