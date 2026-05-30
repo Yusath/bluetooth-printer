@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Slate Background & Accent Colors -->
+    <color name="bg_slate_dark">#0F172A</color> <!-- Deep Slate Background -->
+    <color name="bg_slate_card">#1E293B</color> <!-- Dark slate card background -->
+    <color name="border_glass">#334155</color> <!-- Subtle card border -->
+    
+    <color name="accent_blue">#0ea5e9</color> <!-- Neon Sky Blue -->
+    <color name="accent_blue_hover">#38bdf8</color> <!-- Lighter sky blue -->
+    
+    <color name="status_green">#10b981</color> <!-- Active Green -->
+    <color name="status_red">#f43f5e</color> <!-- Stopped Red -->
+
+    <color name="text_primary">#F8FAFC</color> <!-- High contrast white-gray -->
+    <color name="text_secondary">#94A3B8</color> <!-- Medium contrast gray -->
+
+    <!-- Theme Overrides for standard material components compatibility -->
+    <color name="colorPrimary">#0ea5e9</color>
+    <color name="colorPrimaryDark">#0F172A</color>
+    <color name="colorAccent">#0ea5e9</color>
+</resources>
