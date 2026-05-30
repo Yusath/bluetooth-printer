@@ -1,37 +1,37 @@
 # 🖨️ Blutut Printer - Web & TCP Print Bridge
 ### *Badan Usaha Milik STIT Riyadhussholihiin (BUMS)*
 
-Aplikasi penghubung (*print bridge*) native Android untuk menjembatani printer thermal Bluetooth classic (SPP) dengan sistem kasir web melalui **HTTP/CORS**, data **TCP Socket mentah**, serta **Layanan Cetak Sistem Android (PDF)**. 
+A native Android print bridge application that seamlessly connects Bluetooth classic (SPP) thermal receipt printers with web browsers (via HTTP/CORS), raw TCP sockets, and the Android System Print Service (PDF). 
 
-Didesain dengan ukuran super ringkas (**&lt; 150 KB**), antarmuka gelap (*cybernetic dark theme*) yang premium, serta sistem otomatisasi yang aman dan tahan banting.
-
----
-
-## 🌟 Fitur Unggulan
-
-*   **Antarmuka Premium Melayang**: Navigasi kapsul melayang (*floating navigation capsule*) dengan indikator aktif neon-blue dan badge status bergradasi warna dinamis.
-*   **Watermark Cerdas BUMS**: Secara otomatis menyuntikkan catatan kaki rata tengah 2 baris (`BUMS` dan `Badan Usaha Milik STIT Riyadhussholihiin`) berukuran kecil rapat (**Font B**) tepat sebelum perintah pemotongan/penggulungan di akhir struk agar tidak terpotong.
-*   **Jembatan Protokol Ganda**: Server latar belakang HTTP (dengan dukungan CORS penuh) dan TCP pada port kustom untuk menerima transaksi cetak langsung dari browser web atau aplikasi kasir lokal.
-*   **Perlindungan Data Pengaturan**: Dilengkapi pengaman data uninstal (`hasFragileUserData`) agar alamat printer Bluetooth dan port server kasir Anda tidak terhapus jika aplikasi diperbarui.
-*   **Optimasi Aliran Data**: Penanganan *Buffer Throttling* untuk mencegah *overflow* (cetakan acak/macet) pada model printer thermal ekonomis.
+Designed with an ultra-lightweight footprint (**&lt; 150 KB**), a premium cybernetic dark theme, and robust data protection safety nets.
 
 ---
 
-## 📱 Panduan Singkat Penggunaan
+## 🌟 Key Features
 
-1.  **Sambungkan Printer**: Izinkan hak akses Bluetooth. Pada tab **Printer**, pilih printer thermal Bluetooth Anda dari dropdown kustom lalu klik **Connect Printer**.
-2.  **Aktifkan Server**: Pada tab **Server**, masukkan nomor Port kasir Anda lalu aktifkan **Enable HTTP & TCP Server**.
-3.  **Mulai Cetak**: Jembatan cetak kasir siap menerima aliran cetakan dari aplikasi web atau POS kasir Anda.
+*   **Premium Floating UI**: Features a sleek floating navigation capsule with dynamic active tab indicators and gradient status badges.
+*   **Smart BUMS Watermark**: Automatically injects a two-line centered footnote watermark (`BUMS` and `Badan Usaha Milik STIT Riyadhussholihiin`) in small, crisp **Font B** (`ESC M 1`) precisely before any paper cuts or feed commands at the end of receipts to ensure it is never cut off.
+*   **Dual-Protocol Bridge**: Operates a background HTTP server (with full CORS support) and raw TCP sockets on a custom port to process printing transactions directly from web browsers or local POS clients.
+*   **Data Retention Safeguard**: Utilizes `hasFragileUserData` uninstall protection so your default Bluetooth printer address and server configurations are preserved when updating the app.
+*   **Buffer Throttling**: Implements active data stream throttling to prevent buffer overflows and garbled printouts on budget thermal printer models.
 
 ---
 
-## 🌐 Contoh Integrasi Aplikasi Web (JavaScript CORS)
+## 📱 Quick Start Guide
 
-Kirimkan biner cetak kasir standar ESC/POS langsung dari browser web POS Anda menggunakan fungsi `fetch`. Watermark cerdas BUMS akan secara otomatis disisipkan di bagian paling dasar struk sebelum pemotongan kertas:
+1.  **Connect Printer**: Grant Bluetooth and Nearby Devices permissions. Under the **Printer** tab, select your paired Bluetooth printer from the custom dropdown spinner and tap **Connect Printer**.
+2.  **Enable Server**: Under the **Server** tab, configure your desired port and toggle **Enable HTTP & TCP Server** to ON.
+3.  **Start Printing**: The print bridge is ready to receive and print transaction streams from your web or local POS client.
+
+---
+
+## 🌐 Web POS Integration (JavaScript CORS)
+
+Send ESC/POS raw binary print streams directly from your web browser using `fetch`. The smart watermark is automatically injected at the bottom of the invoice:
 
 ```javascript
-const cetakFakturPOS = (byteBiner) => {
-    // Alamat IP ponsel Android Anda yang tertera di dasbor aplikasi
+const printPOSReceipt = (binaryBytes) => {
+    // Replace with your Android phone's IP address shown on the app dashboard
     const serverUrl = "http://192.168.1.100:6801/"; 
 
     fetch(serverUrl, {
@@ -39,17 +39,17 @@ const cetakFakturPOS = (byteBiner) => {
         headers: {
             "Content-Type": "application/octet-stream"
         },
-        body: new Uint8Array(byteBiner)
+        body: new Uint8Array(binaryBytes)
     })
     .then(res => res.json())
-    .then(data => console.log("Cetak berhasil:", data))
-    .catch(err => console.error("Gagal mencetak:", err));
+    .then(data => console.log("Print successful:", data))
+    .catch(err => console.error("Print failed:", err));
 };
 ```
 
 ---
 
-## 🔌 Integrasi Kasir Jaringan (TCP) & PDF
+## 🔌 Network POS (TCP) & PDF Integration
 
-*   **Aplikasi Kasir Jaringan (Loyverse, Kyte, dll.)**: Pada pengaturan printer aplikasi kasir Anda, pilih jenis printer **Ethernet / Network**, masukkan **Alamat IP** ponsel Anda, dan masukkan Port **`6801`**.
-*   **Pencetakan Berkas PDF**: Aktifkan **Bluetooth Thermal Printer** pada menu Pengaturan Layanan Cetak Android. Anda dapat langsung mencetak berkas PDF faktur dari WhatsApp, Chrome, atau File Manager dengan opsi kontras density yang dinamis.
+*   **Network POS Apps (Loyverse, Kyte, etc.)**: In your POS printer settings, select **Ethernet / Network / WiFi** printer type, enter your phone's **IP Address**, and set the port to **`6801`**.
+*   **PDF Printing (Android System Print)**: Enable **Bluetooth Thermal Printer** in the Android Print Service Settings. You can print PDFs directly from WhatsApp, Chrome, or File Manager with real-time contrast scaling.
