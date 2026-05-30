@@ -46,10 +46,10 @@ public class VirtualPrinterService extends PrintService {
     }
 
     @Override
-    protected PrinterDiscoverySession onCreatePrinterDiscoverySessionCallbacks() {
+    protected PrinterDiscoverySession onCreatePrinterDiscoverySession() {
         return new PrinterDiscoverySession() {
             @Override
-            protected void onStartPrinterDiscovery(List<PrinterId> priorityList) {
+            public void onStartPrinterDiscovery(List<PrinterId> priorityList) {
                 Log.d(TAG, "onStartPrinterDiscovery");
                 List<PrinterInfo> printers = new ArrayList<>();
                 PrinterId printerId = generatePrinterId(PRINTER_ID_NAME);
@@ -71,27 +71,27 @@ public class VirtualPrinterService extends PrintService {
             }
 
             @Override
-            protected void onStopPrinterDiscovery() {
+            public void onStopPrinterDiscovery() {
                 Log.d(TAG, "onStopPrinterDiscovery");
             }
 
             @Override
-            protected void onValidatePrinters(List<PrinterId> printerIds) {
+            public void onValidatePrinters(List<PrinterId> printerIds) {
                 Log.d(TAG, "onValidatePrinters: " + printerIds);
             }
 
             @Override
-            protected void onStartPrinterStateTracking(PrinterId printerId) {
+            public void onStartPrinterStateTracking(PrinterId printerId) {
                 Log.d(TAG, "onStartPrinterStateTracking: " + printerId);
             }
 
             @Override
-            protected void onStopPrinterStateTracking(PrinterId printerId) {
+            public void onStopPrinterStateTracking(PrinterId printerId) {
                 Log.d(TAG, "onStopPrinterStateTracking: " + printerId);
             }
 
             @Override
-            protected void onDestroy() {
+            public void onDestroy() {
                 Log.d(TAG, "Session onDestroy");
             }
         };
