@@ -141,6 +141,18 @@ public class AutoUpdater {
                         });
                     }
 
+                } catch (java.io.FileNotFoundException e) {
+                    Log.d(TAG, "No releases found on GitHub yet (FileNotFoundException).", e);
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (callback != null) {
+                                callback.onNoUpdate();
+                            } else if (manualCheck) {
+                                Toast.makeText(activity, "No releases found on GitHub yet.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
                 } catch (Exception e) {
                     Log.e(TAG, "Error checking for updates", e);
                     postError(callback, e.getMessage());
