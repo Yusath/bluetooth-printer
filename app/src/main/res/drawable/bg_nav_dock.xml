@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Semi-transparent deep dark midnight blue/slate background (Glassmorphism look) -->
+    <solid android:color="#E60B0F19" />
+    <!-- Sleek border in cyan/sky-blue neon -->
+    <stroke
+        android:width="1.5dp"
+        android:color="#330ea5e9" />
+    <!-- Rounded capsule style corners -->
+    <corners android:radius="32dp" />
+</shape>

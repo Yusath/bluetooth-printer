@@ -27,32 +27,42 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="16dp">
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="20dp">
 
-                <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_printer"
-                    app:tint="@color/accent_blue"
-                    android:layout_marginBottom="8dp"
-                    android:contentDescription="@string/app_name"/>
+                <!-- Glowing circular container for the header icon -->
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:background="@drawable/bg_spinner_box"
+                    android:layout_marginBottom="12dp">
+                    
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_printer"
+                        app:tint="@color/accent_blue"
+                        android:contentDescription="@string/app_name"/>
+                </FrameLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/app_name"
-                    android:textSize="22sp"
+                    android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary"/>
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="sans-serif-medium"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Web &amp; TCP Print Bridge"
-                    android:textSize="12sp"
+                    android:textSize="13sp"
                     android:textColor="@color/text_secondary"
-                    android:layout_marginTop="2dp"/>
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif"/>
             </LinearLayout>
 
             <!-- BLUETOOTH STATUS WARNING BANNER -->
@@ -62,18 +72,19 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:background="@drawable/border_glass"
-                android:backgroundTint="#2D1B22"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone">
+                android:background="@drawable/bg_status_disconnected"
+                android:padding="14dp"
+                android:layout_marginBottom="20dp"
+                android:visibility="gone"
+                android:clickable="true"
+                android:focusable="true">
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:src="@drawable/ic_scan"
                     app:tint="@color/status_red"
-                    android:layout_marginEnd="10dp"
+                    android:layout_marginEnd="12dp"
                     android:contentDescription="Warning"/>
 
                 <TextView
@@ -83,7 +94,8 @@
                     android:text="@string/bt_turned_off"
                     android:textColor="@color/status_red"
                     android:textSize="13sp"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"/>
             </LinearLayout>
 
             <!-- ==================== TAB 1: PRINTER CONNECTION ==================== -->
@@ -97,10 +109,10 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="16dp"
+                    app:cardCornerRadius="20dp"
                     app:cardElevation="0dp"
                     app:strokeColor="@color/border_glass"
-                    app:strokeWidth="1dp"
+                    app:strokeWidth="1.5dp"
                     app:cardBackgroundColor="@color/bg_slate_card"
                     android:layout_marginBottom="16dp">
 
@@ -108,14 +120,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="16dp">
+                            android:layout_marginBottom="20dp">
 
                             <ImageView
                                 android:layout_width="24dp"
@@ -132,15 +144,17 @@
                                 android:text="@string/printer_settings"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                android:textColor="@color/text_primary"/>
+                                android:textColor="@color/text_primary"
+                                android:fontFamily="sans-serif-medium"/>
                         </LinearLayout>
 
-                        <!-- Status Display -->
+                        <!-- Status Display Pill Badge -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginBottom="16dp">
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="20dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -148,7 +162,8 @@
                                 android:text="@string/status_printer"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="14sp"
-                                android:layout_marginEnd="8dp"/>
+                                android:layout_marginEnd="12dp"
+                                android:fontFamily="sans-serif"/>
 
                             <TextView
                                 android:id="@+id/tvPrinterStatus"
@@ -156,8 +171,14 @@
                                 android:layout_height="wrap_content"
                                 android:text="Disconnected"
                                 android:textStyle="bold"
-                                android:textColor="@color/status_red"
-                                android:textSize="14sp"/>
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"
+                                android:paddingTop="5dp"
+                                android:paddingBottom="5dp"
+                                android:background="@drawable/bg_status_disconnected"
+                                android:fontFamily="sans-serif-medium"/>
                         </LinearLayout>
 
                         <TextView
@@ -165,62 +186,91 @@
                             android:layout_height="wrap_content"
                             android:text="@string/select_printer"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginBottom="8dp"/>
+                            android:textSize="13sp"
+                            android:layout_marginBottom="8dp"
+                            android:fontFamily="sans-serif-medium"/>
 
-                        <!-- Spinner container -->
+                        <!-- Custom Spinner container with Chevron -->
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:background="@drawable/border_glass"
-                            android:layout_marginBottom="16dp"
-                            android:paddingStart="12dp"
-                            android:paddingEnd="12dp">
+                            android:layout_height="50dp"
+                            android:background="@drawable/bg_spinner_box"
+                            android:layout_marginBottom="20dp">
 
                             <Spinner
                                 android:id="@+id/spPrinters"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:spinnerMode="dropdown"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="40dp"
+                                android:background="@android:color/transparent"
                                 android:textColor="@color/text_primary"/>
+                            
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="end|center_vertical"
+                                android:layout_marginEnd="14dp"
+                                android:src="@drawable/ic_arrow_down"
+                                app:tint="@color/text_secondary"
+                                android:contentDescription="Dropdown Arrow"
+                                android:clickable="false"
+                                android:focusable="false"/>
                         </FrameLayout>
 
+                        <!-- Primary Connect Action Button -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnConnect"
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
+                            android:layout_height="50dp"
                             android:text="@string/connect"
-                            android:textColor="@color/bg_slate_dark"
+                            android:textColor="#0B0F19"
                             app:backgroundTint="@color/accent_blue"
-                            app:cornerRadius="24dp"
+                            app:cornerRadius="25dp"
                             android:textStyle="bold"
-                            android:layout_marginBottom="12dp"/>
+                            android:textSize="14sp"
+                            android:layout_marginBottom="16dp"
+                            android:fontFamily="sans-serif-medium"/>
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnTestPrint"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        <!-- Side-by-Side Test Printing Row -->
+                        <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:text="@string/test_print"
-                            android:textColor="@color/accent_blue"
-                            app:strokeColor="@color/accent_blue"
-                            app:strokeWidth="1.5dp"
-                            app:cornerRadius="24dp"
-                            android:textStyle="bold"
-                            android:layout_marginBottom="12dp"/>
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnTestPrint"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="48dp"
+                                android:text="Test Text"
+                                android:textColor="@color/accent_blue"
+                                app:strokeColor="@color/accent_blue"
+                                app:strokeWidth="1.5dp"
+                                app:cornerRadius="24dp"
+                                android:textStyle="bold"
+                                android:textSize="12sp"
+                                android:layout_marginEnd="6dp"
+                                android:fontFamily="sans-serif-medium"/>
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnTestImagePrint"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:text="@string/test_image_print"
-                            android:textColor="@color/accent_blue"
-                            app:strokeColor="@color/accent_blue"
-                            app:strokeWidth="1.5dp"
-                            app:cornerRadius="24dp"
-                            android:textStyle="bold"/>
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnTestImagePrint"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="48dp"
+                                android:text="Test Image"
+                                android:textColor="@color/accent_blue"
+                                app:strokeColor="@color/accent_blue"
+                                app:strokeWidth="1.5dp"
+                                app:cornerRadius="24dp"
+                                android:textStyle="bold"
+                                android:textSize="12sp"
+                                android:layout_marginStart="6dp"
+                                android:fontFamily="sans-serif-medium"/>
+                        </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
@@ -236,10 +286,10 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="16dp"
+                    app:cardCornerRadius="20dp"
                     app:cardElevation="0dp"
                     app:strokeColor="@color/border_glass"
-                    app:strokeWidth="1dp"
+                    app:strokeWidth="1.5dp"
                     app:cardBackgroundColor="@color/bg_slate_card"
                     android:layout_marginBottom="16dp">
 
@@ -247,14 +297,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="16dp">
+                            android:layout_marginBottom="20dp">
 
                             <ImageView
                                 android:layout_width="24dp"
@@ -271,15 +321,17 @@
                                 android:text="@string/server_settings"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                android:textColor="@color/text_primary"/>
+                                android:textColor="@color/text_primary"
+                                android:fontFamily="sans-serif-medium"/>
                         </LinearLayout>
 
-                        <!-- Status Display -->
+                        <!-- Status Display Pill Badge -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:layout_marginBottom="16dp">
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="20dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -287,7 +339,8 @@
                                 android:text="@string/status_server"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="14sp"
-                                android:layout_marginEnd="8dp"/>
+                                android:layout_marginEnd="12dp"
+                                android:fontFamily="sans-serif"/>
 
                             <TextView
                                 android:id="@+id/tvServerStatus"
@@ -295,8 +348,14 @@
                                 android:layout_height="wrap_content"
                                 android:text="Stopped"
                                 android:textStyle="bold"
-                                android:textColor="@color/status_red"
-                                android:textSize="14sp"/>
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"
+                                android:paddingTop="5dp"
+                                android:paddingBottom="5dp"
+                                android:background="@drawable/bg_status_disconnected"
+                                android:fontFamily="sans-serif-medium"/>
                         </LinearLayout>
 
                         <!-- Switches & Inputs -->
@@ -310,7 +369,8 @@
                             app:useMaterialThemeColors="false"
                             app:thumbTint="@color/accent_blue"
                             app:trackTint="@color/border_glass"
-                            android:layout_marginBottom="12dp"/>
+                            android:layout_marginBottom="16dp"
+                            android:fontFamily="sans-serif-medium"/>
 
                         <com.google.android.material.switchmaterial.SwitchMaterial
                             android:id="@+id/swStartOnBoot"
@@ -322,7 +382,8 @@
                             app:useMaterialThemeColors="false"
                             app:thumbTint="@color/accent_blue"
                             app:trackTint="@color/border_glass"
-                            android:layout_marginBottom="16dp"/>
+                            android:layout_marginBottom="20dp"
+                            android:fontFamily="sans-serif-medium"/>
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -336,13 +397,14 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/server_port"
                                 android:textColor="@color/text_primary"
-                                android:textSize="14sp"/>
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"/>
 
                             <EditText
                                 android:id="@+id/etServerPort"
-                                android:layout_width="100dp"
-                                android:layout_height="40dp"
-                                android:background="@drawable/border_glass"
+                                android:layout_width="110dp"
+                                android:layout_height="44dp"
+                                android:background="@drawable/bg_spinner_box"
                                 android:gravity="center"
                                 android:inputType="number"
                                 android:text="6801"
@@ -350,7 +412,8 @@
                                 android:textSize="14sp"
                                 android:maxLength="5"
                                 android:padding="8dp"
-                                android:contentDescription="@string/server_port"/>
+                                android:contentDescription="@string/server_port"
+                                android:fontFamily="sans-serif-medium"/>
                         </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -367,10 +430,10 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="16dp"
+                    app:cardCornerRadius="20dp"
                     app:cardElevation="0dp"
                     app:strokeColor="@color/border_glass"
-                    app:strokeWidth="1dp"
+                    app:strokeWidth="1.5dp"
                     app:cardBackgroundColor="@color/bg_slate_card"
                     android:layout_marginBottom="16dp">
 
@@ -378,14 +441,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="16dp">
+                            android:layout_marginBottom="20dp">
 
                             <ImageView
                                 android:layout_width="24dp"
@@ -402,32 +465,41 @@
                                 android:text="Advanced Settings"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                android:textColor="@color/text_primary"/>
+                                android:textColor="@color/text_primary"
+                                android:fontFamily="sans-serif-medium"/>
                         </LinearLayout>
 
-                        <!-- Auto Update Switch -->
-                        <com.google.android.material.switchmaterial.SwitchMaterial
-                            android:id="@+id/swAutoUpdate"
+                        <!-- Auto Update Switch & Action button inline layout -->
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/auto_update"
-                            android:textColor="@color/text_primary"
-                            android:textSize="14sp"
-                            app:useMaterialThemeColors="false"
-                            app:thumbTint="@color/accent_blue"
-                            app:trackTint="@color/border_glass"
-                            android:layout_marginBottom="4dp"/>
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp">
+                            
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/swAutoUpdate"
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content"
+                                android:text="@string/auto_update"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp"
+                                app:useMaterialThemeColors="false"
+                                app:thumbTint="@color/accent_blue"
+                                app:trackTint="@color/border_glass"
+                                android:fontFamily="sans-serif-medium"/>
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnCheckUpdate"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="36dp"
-                            android:text="@string/check_update_btn"
-                            android:textColor="@color/accent_blue"
-                            android:textSize="12sp"
-                            android:layout_gravity="end"
-                            android:layout_marginBottom="16dp"/>
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnCheckUpdate"
+                                style="@style/Widget.MaterialComponents.Button.TextButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="36dp"
+                                android:text="Check"
+                                android:textColor="@color/accent_blue"
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif-medium"/>
+                        </LinearLayout>
 
                         <!-- Buffer Throttling Switch -->
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -440,9 +512,10 @@
                             app:useMaterialThemeColors="false"
                             app:thumbTint="@color/accent_blue"
                             app:trackTint="@color/border_glass"
-                            android:layout_marginBottom="16dp"/>
+                            android:layout_marginBottom="20dp"
+                            android:fontFamily="sans-serif-medium"/>
 
-                        <!-- Paper Size Spinner Option -->
+                        <!-- Paper Size Option with custom Spinner box -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -456,31 +529,44 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/paper_size"
                                 android:textColor="@color/text_primary"
-                                android:textSize="14sp"/>
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"/>
 
                             <FrameLayout
-                                android:layout_width="140dp"
-                                android:layout_height="40dp"
-                                android:background="@drawable/border_glass"
-                                android:paddingStart="8dp"
-                                android:paddingEnd="8dp">
+                                android:layout_width="150dp"
+                                android:layout_height="44dp"
+                                android:background="@drawable/bg_spinner_box">
 
                                 <Spinner
                                     android:id="@+id/spPaperSize"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:spinnerMode="dropdown"
+                                    android:paddingStart="8dp"
+                                    android:paddingEnd="36dp"
+                                    android:background="@android:color/transparent"
                                     android:textColor="@color/text_primary"/>
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="end|center_vertical"
+                                    android:layout_marginEnd="10dp"
+                                    android:src="@drawable/ic_arrow_down"
+                                    app:tint="@color/text_secondary"
+                                    android:contentDescription="Dropdown Arrow"
+                                    android:clickable="false"
+                                    android:focusable="false"/>
                             </FrameLayout>
                         </LinearLayout>
 
-                        <!-- Extra Feed Lines Spinner Option -->
+                        <!-- Extra Feed Options with custom Spinner box -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="16dp">
+                            android:layout_marginBottom="20dp">
 
                             <TextView
                                 android:layout_width="0dp"
@@ -488,21 +574,34 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/extra_feed"
                                 android:textColor="@color/text_primary"
-                                android:textSize="14sp"/>
+                                android:textSize="14sp"
+                                android:fontFamily="sans-serif-medium"/>
 
                             <FrameLayout
-                                android:layout_width="140dp"
-                                android:layout_height="40dp"
-                                android:background="@drawable/border_glass"
-                                android:paddingStart="8dp"
-                                android:paddingEnd="8dp">
+                                android:layout_width="150dp"
+                                android:layout_height="44dp"
+                                android:background="@drawable/bg_spinner_box">
 
                                 <Spinner
                                     android:id="@+id/spFeedLines"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:spinnerMode="dropdown"
+                                    android:paddingStart="8dp"
+                                    android:paddingEnd="36dp"
+                                    android:background="@android:color/transparent"
                                     android:textColor="@color/text_primary"/>
+
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:layout_gravity="end|center_vertical"
+                                    android:layout_marginEnd="10dp"
+                                    android:src="@drawable/ic_arrow_down"
+                                    app:tint="@color/text_secondary"
+                                    android:contentDescription="Dropdown Arrow"
+                                    android:clickable="false"
+                                    android:focusable="false"/>
                             </FrameLayout>
                         </LinearLayout>
 
@@ -513,7 +612,8 @@
                             android:text="@string/print_contrast"
                             android:textColor="@color/text_primary"
                             android:textSize="14sp"
-                            android:layout_marginBottom="8dp"/>
+                            android:layout_marginBottom="10dp"
+                            android:fontFamily="sans-serif-medium"/>
 
                         <SeekBar
                             android:id="@+id/sbContrast"
@@ -524,20 +624,21 @@
                             android:thumbTint="@color/accent_blue"
                             android:progressTint="@color/accent_blue"
                             android:progressBackgroundTint="@color/border_glass"
-                            android:layout_marginBottom="16dp"/>
+                            android:layout_marginBottom="24dp"/>
 
                         <!-- System Print Service Enable -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnOpenPrintSettings"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
+                            android:layout_height="50dp"
                             android:text="Enable System Print Service"
                             android:textColor="@color/accent_blue"
                             app:strokeColor="@color/accent_blue"
                             app:strokeWidth="1.5dp"
-                            app:cornerRadius="24dp"
-                            android:textStyle="bold"/>
+                            app:cornerRadius="25dp"
+                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
@@ -553,10 +654,10 @@
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="16dp"
+                    app:cardCornerRadius="20dp"
                     app:cardElevation="0dp"
                     app:strokeColor="@color/border_glass"
-                    app:strokeWidth="1dp"
+                    app:strokeWidth="1.5dp"
                     app:cardBackgroundColor="@color/bg_slate_card"
                     android:layout_marginBottom="16dp">
 
@@ -564,14 +665,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="12dp">
+                            android:layout_marginBottom="16dp">
 
                             <ImageView
                                 android:layout_width="24dp"
@@ -588,7 +689,8 @@
                                 android:text="@string/activity_logs"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                android:textColor="@color/text_primary"/>
+                                android:textColor="@color/text_primary"
+                                android:fontFamily="sans-serif-medium"/>
                             
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnClearLogs"
@@ -597,15 +699,17 @@
                                 android:layout_height="36dp"
                                 android:text="Clear"
                                 android:textColor="@color/text_secondary"
-                                android:textSize="11sp"/>
+                                android:textSize="12sp"
+                                android:fontFamily="sans-serif-medium"/>
                         </LinearLayout>
 
+                        <!-- Monospace console log panel with border -->
                         <ScrollView
                             android:id="@+id/svLogs"
                             android:layout_width="match_parent"
-                            android:layout_height="300dp"
-                            android:background="#0B0F19"
-                            android:padding="10dp">
+                            android:layout_height="320dp"
+                            android:background="#070A13"
+                            android:padding="12dp">
 
                             <TextView
                                 android:id="@+id/tvLogs"
@@ -613,7 +717,7 @@
                                 android:layout_height="wrap_content"
                                 android:fontFamily="monospace"
                                 android:text="[System info] Bridge dashboard ready.\n"
-                                android:textColor="@color/status_green"
+                                android:textColor="#00FFCC"
                                 android:textSize="11sp"/>
                         </ScrollView>
                     </LinearLayout>
@@ -623,16 +727,19 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- FIXED BOTTOM GLASS NAVIGATION BAR -->
+    <!-- FIXED FLOATING BOTTOM GLASS NAVIGATION DOCK -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="68dp"
         android:orientation="horizontal"
-        android:background="@drawable/border_glass"
-        android:backgroundTint="@color/bg_slate_card"
+        android:background="@drawable/bg_nav_dock"
         android:gravity="center"
         android:padding="4dp"
-        android:layout_marginTop="8dp">
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        android:layout_marginTop="8dp"
+        android:elevation="6dp">
         
         <!-- Tab 1: Printer -->
         <LinearLayout
@@ -645,12 +752,14 @@
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless">
+            
             <ImageView
                 android:id="@+id/ivTabPrinter"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/ic_printer"
                 app:tint="@color/accent_blue"/>
+            
             <TextView
                 android:id="@+id/tvTabPrinter"
                 android:layout_width="wrap_content"
@@ -659,7 +768,17 @@
                 android:textSize="10sp"
                 android:textColor="@color/accent_blue"
                 android:textStyle="bold"
-                android:layout_marginTop="2dp"/>
+                android:layout_marginTop="1dp"
+                android:fontFamily="sans-serif-medium"/>
+            
+            <!-- Sleek active capsule indicator -->
+            <View
+                android:id="@+id/vIndicatorPrinter"
+                android:layout_width="16dp"
+                android:layout_height="2.5dp"
+                android:background="@color/accent_blue"
+                android:layout_marginTop="3dp"
+                android:visibility="visible"/>
         </LinearLayout>
 
         <!-- Tab 2: Server -->
@@ -673,12 +792,14 @@
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless">
+            
             <ImageView
                 android:id="@+id/ivTabServer"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/ic_server"
                 app:tint="@color/text_secondary"/>
+            
             <TextView
                 android:id="@+id/tvTabServer"
                 android:layout_width="wrap_content"
@@ -686,7 +807,17 @@
                 android:text="Server"
                 android:textSize="10sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginTop="2dp"/>
+                android:layout_marginTop="1dp"
+                android:fontFamily="sans-serif"/>
+
+            <!-- Sleek active capsule indicator -->
+            <View
+                android:id="@+id/vIndicatorServer"
+                android:layout_width="16dp"
+                android:layout_height="2.5dp"
+                android:background="@color/accent_blue"
+                android:layout_marginTop="3dp"
+                android:visibility="gone"/>
         </LinearLayout>
 
         <!-- Tab 3: Settings -->
@@ -700,12 +831,14 @@
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless">
+            
             <ImageView
                 android:id="@+id/ivTabSettings"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/ic_settings"
                 app:tint="@color/text_secondary"/>
+            
             <TextView
                 android:id="@+id/tvTabSettings"
                 android:layout_width="wrap_content"
@@ -713,7 +846,17 @@
                 android:text="Settings"
                 android:textSize="10sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginTop="2dp"/>
+                android:layout_marginTop="1dp"
+                android:fontFamily="sans-serif"/>
+
+            <!-- Sleek active capsule indicator -->
+            <View
+                android:id="@+id/vIndicatorSettings"
+                android:layout_width="16dp"
+                android:layout_height="2.5dp"
+                android:background="@color/accent_blue"
+                android:layout_marginTop="3dp"
+                android:visibility="gone"/>
         </LinearLayout>
 
         <!-- Tab 4: Logs -->
@@ -727,12 +870,14 @@
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless">
+            
             <ImageView
                 android:id="@+id/ivTabLogs"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:src="@drawable/ic_scan"
                 app:tint="@color/text_secondary"/>
+            
             <TextView
                 android:id="@+id/tvTabLogs"
                 android:layout_width="wrap_content"
@@ -740,7 +885,17 @@
                 android:text="Logs"
                 android:textSize="10sp"
                 android:textColor="@color/text_secondary"
-                android:layout_marginTop="2dp"/>
+                android:layout_marginTop="1dp"
+                android:fontFamily="sans-serif"/>
+
+            <!-- Sleek active capsule indicator -->
+            <View
+                android:id="@+id/vIndicatorLogs"
+                android:layout_width="16dp"
+                android:layout_height="2.5dp"
+                android:background="@color/accent_blue"
+                android:layout_marginTop="3dp"
+                android:visibility="gone"/>
         </LinearLayout>
     </LinearLayout>
 

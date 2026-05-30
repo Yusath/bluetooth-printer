@@ -127,4 +127,70 @@ public class EscPosDriver {
 
         return output.toByteArray();
     }
+
+    /**
+     * Appends a two-line footer watermark ("BUMS" and "Badan Usaha Milik STIT Riyadhussholihiin")
+     * in Font B, centered alignment, to the original ESC/POS print byte array.
+     * Searches for existing paper cut (GS V) or feed (ESC d) commands at the end (last 15 bytes)
+     * and injects the watermark just before them to ensure it is printed properly before
+     * cutting or feeding.
+     *
+     * @param originalData The original ESC/POS print bytes.
+     * @return Byte array with watermark injected.
+     */
+    public static byte[] appendWatermark(byte[] originalData) {
+        if (originalData == null || originalData.length == 0) return originalData;
+
+        byte[] watermarkText;
+        try {
+            java.io.ByteArrayOutputStream watermarkStream = new java.io.ByteArrayOutputStream();
+            
+            // 1. Center alignment
+            watermarkStream.write(new byte[]{0x1B, 0x61, 0x01});
+            
+            // 2. Select Font B (small, compact 9x17 dot font)
+            watermarkStream.write(new byte[]{0x1B, 0x4D, 0x01});
+            
+            // 3. Watermark text (Line 1: BUMS, Line 2: Badan Usaha Milik STIT Riyadhussholihiin)
+            // Added safe padding around the text
+            watermarkStream.write("\nBUMS\nBadan Usaha Milik STIT Riyadhussholihiin\n".getBytes("UTF-8"));
+            
+            // 4. Reset Font A (standard) and reset left alignment
+            watermarkStream.write(new byte[]{0x1B, 0x4D, 0x00});
+            watermarkStream.write(new byte[]{0x1B, 0x61, 0x00});
+            
+            watermarkText = watermarkStream.toByteArray();
+        } catch (java.io.IOException e) {
+            return originalData;
+        }
+
+        int insertIndex = originalData.length;
+
+        // Look at the last 15 bytes of originalData to check for typical cut (GS V) or feed (ESC d) commands
+        for (int i = originalData.length - 2; i >= Math.max(0, originalData.length - 15); i--) {
+            // Check for GS V command: 0x1D, 0x56
+            if (originalData[i] == 0x1D && originalData[i + 1] == 0x56) {
+                insertIndex = i;
+                break;
+            }
+            // Check for ESC d command: 0x1B, 0x64
+            if (originalData[i] == 0x1B && originalData[i + 1] == 0x64) {
+                insertIndex = i;
+                break;
+            }
+        }
+
+        // Construct final data stream
+        java.io.ByteArrayOutputStream result = new java.io.ByteArrayOutputStream();
+        try {
+            result.write(originalData, 0, insertIndex);
+            result.write(watermarkText);
+            if (insertIndex < originalData.length) {
+                result.write(originalData, insertIndex, originalData.length - insertIndex);
+            }
+            return result.toByteArray();
+        } catch (java.io.IOException e) {
+            return originalData;
+        }
+    }
 }

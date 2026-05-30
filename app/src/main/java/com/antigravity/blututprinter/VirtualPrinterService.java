@@ -167,9 +167,10 @@ public class VirtualPrinterService extends PrintService {
 
                         // Dither and convert to ESC/POS raster bit command with dynamic threshold and custom extra feeds
                         byte[] escPosData = EscPosDriver.bitmapToEscPos(bitmap, targetWidth, contrastThreshold, feedLines);
+                        byte[] finalData = EscPosDriver.appendWatermark(escPosData);
                         
                         // Send data to bluetooth printer
-                        boolean ok = printer.sendData(escPosData);
+                        boolean ok = printer.sendData(finalData);
                         if (!ok) {
                             throw new IOException("Failed to write to bluetooth device.");
                         }

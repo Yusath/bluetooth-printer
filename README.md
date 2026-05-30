@@ -1,18 +1,42 @@
-# Blutut Printer - Ultra-Lightweight Android Print Bridge
+# Blutut Printer - Ultra-Lightweight Android Print Bridge (v1.0.3)
 
-An extremely lightweight (final compiled APK size **under 150 KB**) native Android print bridge. It is designed to act as an alternative to apps like RawBT, allowing direct printing to Bluetooth classic (SPP) thermal receipt printers from **web browsers (via HTTP/CORS)**, **direct TCP sockets**, or **Android print intents**.
+An extremely lightweight native Android print bridge. It acts as a robust, native alternative to apps like RawBT, allowing direct printing to Bluetooth classic (SPP) thermal receipt printers from **web browsers (via HTTP/CORS)**, **direct TCP sockets**, or **Android print intents**.
+
+---
+
+## 🌟 What's New in v1.0.3
+
+### 📱 1. Premium Cybernetic UI/UX Revamp
+*   **Floating Navigation Capsule Dock**: Replaced the traditional flat bottom navigation bar with a floating capsule dock featuring smooth margins, rounded corners, and a double-stroke neon-glowing border.
+*   **Active Tab Capsule Indicators**: Added neat, interactive 2.5dp Sky Blue neon indicators underneath the active tab icon to give a premium, tactile, and highly responsive feedback.
+*   **Dynamic Status Pill Badges**: Replaced static key-value labels with visually striking status pills that dynamically shift backgrounds:
+    *   **Active/Running**: Radiant Emerald-to-Teal gradient with glowing white text.
+    *   **Stopped/Disconnected**: Elegant Slate background with thin Rose/Crimson outlines.
+*   **Sleek Custom Spinners**: Created fully customized spinner layouts (`custom_spinner_item` and `custom_spinner_dropdown_item`) featuring modern typography (`sans-serif-medium`) and minimalist chevron vector drawables, completely removing legacy Android system spinner graphics.
+*   **Space-Efficient Layouts**: Configured horizontal side-by-side rows for testing buttons to conserve vertical space and maximize ergonomics.
+*   **Glowing Monospace Console**: High-contrast console terminal log styled with rounded bounds and a radiant `#00FFCC` neon-green text theme.
+
+### 🖨️ 2. Smart BUMS Footnote Watermark
+Appends a beautiful two-line footer watermark centered at the bottom of all successful receipts:
+```text
+                  BUMS
+Badan Usaha Milik STIT Riyadhussholihiin
+```
+*   **Font B Compact Sizing**: Printed in crisp **Font B** (`ESC M 1`), which fits perfectly on standard 58mm budget printers without wrapping, while remaining highly readable.
+*   **Smart Stream Injector**: Scans the last 15 bytes of incoming ESC/POS streams for paper cuts (`GS V` / `0x1D 0x56`) or feed commands (`ESC d` / `0x1B 0x64`) and injects the watermark precisely *before* them. This ensures it is printed cleanly at the bottom of the invoice before the paper is cut or fed, preventing cut-offs or printing on the next receipt. Works universally for HTTP POST, raw TCP, and PDF System Print Services.
 
 ---
 
 ## Key Features
 
-1. **Ultra-Tiny Footprint**: Compiled using native Java and optimized resource shrinking, resulting in an install file size of **~100KB to 150KB** (easily beating the 3MB limit).
+1. **Ultra-Tiny Footprint**: Compiled using native Java and optimized resource shrinking, resulting in a final install file size under **150KB** (easily beating constraints).
 2. **Dual-Protocol Background Server**:
-   - **HTTP Server (Port 6801)**: Fully compatible with Web Browser `fetch` calls, complete with **CORS headers enabled**.
-   - **TCP Raw Server (Port 6801)**: Accepts raw TCP print bytes from standard network printer client apps.
+   - **HTTP Server (Port 6801)**: Fully compatible with Web Browser `fetch` calls, with **CORS headers enabled**.
+   - **TCP Raw Server (Port 6801)**: Accepts raw TCP print bytes from standard network printer client apps (like Loyverse, Kyte, etc.).
 3. **RawBT Compatibility**: Supports standard printing intents (`com.rawbt.print.ACTION_PRINT` and standard sharing intents).
 4. **Boot Auto-Start**: Can automatically launch the print server service as soon as the phone boots up.
-5. **Modern Premium UI**: Sleek slate-dark theme dashboard with real-time status badges, settings configurators, a printer scanner, and a stylized test receipt printing utility.
+5. **Dynamic Paper Sizes**: Configurable dimensions between 58mm (384px) and 80mm (576px) receipts.
+6. **Buffer Throttling**: Splits large dithered images into 512-byte blocks with a tiny 80ms sleep to prevent overflow crashes on budget thermal printers.
 
 ---
 
@@ -23,11 +47,11 @@ Since you don't have the Android SDK installed on your machine, we have built a 
 1. **Create a GitHub Repository**:
    - Go to [github.com](https://github.com) and create a new **free repository** (it can be Public or Private).
 2. **Push the Code to GitHub**:
-   - Open terminal in this project folder (`d:\Antigapps\blutut-printer`) and run:
+   - Open the terminal in this project folder (`d:\Antigapps\blutut-printer`) and run:
      ```bash
      git init
      git add .
-     git commit -m "Initial commit for Blutut Printer Bridge"
+     git commit -m "Initial commit for Blutut Printer Bridge v1.0.3"
      git branch -M main
      git remote add origin <YOUR_GITHUB_REPOSITORY_URL>
      git push -u origin main
@@ -46,15 +70,15 @@ Since you don't have the Android SDK installed on your machine, we have built a 
 1. **Grant Permissions**: Open the app, and allow the requested Bluetooth permissions.
 2. **Select & Connect Printer**:
    - Make sure your thermal printer is turned on and paired in your phone's Android Bluetooth Settings.
-   - Select your printer from the dropdown spinner inside the app.
-   - Click **Connect Printer**. The printer status will change to `Connected to [Printer Name]`.
+   - Select your printer from the custom dropdown spinner inside the app.
+   - Click **Connect Printer**. The printer status will change to `Connected to [Printer Name]` in a glowing Emerald badge.
 3. **Start the Print Server**:
    - Enter your desired port (default: `6801`).
    - Toggle **Enable HTTP & TCP Server** to ON.
    - The server status will update showing your local access addresses (e.g. `http://localhost:6801` and `http://192.168.1.100:6801`).
    - Optional: Toggle **Start Server on Device Boot** if you want it to run automatically when your phone turns on.
 4. **Test the Connection**:
-   - Click **Send Test Receipt**. Your thermal printer will instantly print a beautifully formatted sample receipt with aligned text, separator lines, and a feed-and-cut command!
+   - Click **Test Text** or **Test Image**. Your thermal printer will instantly print a beautifully formatted sample receipt with aligned text, separator lines, the smart BUMS watermark, and a feed-and-cut command!
 
 ---
 
@@ -88,7 +112,7 @@ printText("Hello World!\nThis is printed directly from the web app!");
 ```
 
 ### 2. Printing ESC/POS Binary Commands (Formatted Receipts)
-To print bold headings, centered text, or feed/cut commands, you can send raw byte streams as binary data:
+To print bold headings, centered text, or feed/cut commands, you can send raw byte streams as binary data. The smart injector will automatically catch existing cut/feed bytes at the end and insert the BUMS watermark just before them:
 
 ```javascript
 const printEscPosReceipt = () => {
@@ -124,7 +148,7 @@ const printEscPosReceipt = () => {
         ...ESC_BOLD_OFF,
         ...encoder.encode("--------------------------------\n"),
         ...encoder.encode("Thank you for your purchase!\n\n\n\n"),
-        ...ESC_FEED_AND_CUT
+        ...ESC_FEED_AND_CUT // Watermark will be smart-injected right before this command!
     ];
 
     const uint8Array = new Uint8Array(data);
@@ -149,6 +173,6 @@ const printEscPosReceipt = () => {
 Our print bridge also acts as a raw **TCP network printer wrapper**. You can connect standard network-enabled POS apps (like Loyverse, Kyte, etc.) directly to it:
 
 1. In the printer settings of your POS app, choose **Ethernet/Network/WiFi** printer type.
-2. Enter the IP Address of your Android phone (as shown on the Blutut Printer dashboard under the `http://` banner).
+2. Enter the IP Address of your Android phone (as shown on the Blutut Printer dashboard).
 3. Enter Port `6801` (or whichever port you configured).
 4. The POS app will establish a direct TCP socket and stream receipts straight to your Bluetooth printer!

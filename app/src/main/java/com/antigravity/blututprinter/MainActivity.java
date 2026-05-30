@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvTabPrinter, tvTabServer, tvTabSettings, tvTabLogs;
     private LinearLayout tabLayoutPrinter, tabLayoutServer, tabLayoutSettings, tabLayoutLogs;
     private ScrollView mainScrollView;
+    private View vIndicatorPrinter, vIndicatorServer, vIndicatorSettings, vIndicatorLogs;
 
     private List<BluetoothDevice> deviceList = new ArrayList<>();
     private ArrayAdapter<String> spinnerAdapter;
@@ -172,8 +173,8 @@ public class MainActivity extends AppCompatActivity {
         List<String> paperSizes = new ArrayList<>();
         paperSizes.add("58mm (384 px)");
         paperSizes.add("80mm (576 px)");
-        ArrayAdapter<String> paperAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, paperSizes);
-        paperAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> paperAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, paperSizes);
+        paperAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
         spPaperSize.setAdapter(paperAdapter);
         
         int savedWidth = prefs.getInt("paper_width", 384);
@@ -184,8 +185,8 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 1; i <= 5; i++) {
             feedOptions.add(i + " lines");
         }
-        ArrayAdapter<String> feedAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, feedOptions);
-        feedAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        ArrayAdapter<String> feedAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, feedOptions);
+        feedAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
         spFeedLines.setAdapter(feedAdapter);
 
         int savedFeed = prefs.getInt("extra_feed", 3);
@@ -267,8 +268,14 @@ public class MainActivity extends AppCompatActivity {
         
         mainScrollView = findViewById(R.id.mainScrollView);
 
-        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, deviceNames);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Custom Floating Dock Active Indicators
+        vIndicatorPrinter = findViewById(R.id.vIndicatorPrinter);
+        vIndicatorServer = findViewById(R.id.vIndicatorServer);
+        vIndicatorSettings = findViewById(R.id.vIndicatorSettings);
+        vIndicatorLogs = findViewById(R.id.vIndicatorLogs);
+
+        spinnerAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, deviceNames);
+        spinnerAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
         spPrinters.setAdapter(spinnerAdapter);
     }
 
@@ -464,25 +471,29 @@ public class MainActivity extends AppCompatActivity {
         tabLayoutSettings.setVisibility(tabIndex == 2 ? View.VISIBLE : View.GONE);
         tabLayoutLogs.setVisibility(tabIndex == 3 ? View.VISIBLE : View.GONE);
 
-        // Reset Colors
-        int colorAccent = ContextCompat.getColor(this, android.R.color.holo_blue_light);
-        int colorSecondary = ContextCompat.getColor(this, android.R.color.darker_gray);
+        // Reset Colors using modern Sky Blue and Text Secondary
+        int colorAccent = ContextCompat.getColor(this, R.color.accent_blue);
+        int colorSecondary = ContextCompat.getColor(this, R.color.text_secondary);
 
         ivTabPrinter.setColorFilter(tabIndex == 0 ? colorAccent : colorSecondary);
         tvTabPrinter.setTextColor(tabIndex == 0 ? colorAccent : colorSecondary);
         tvTabPrinter.setTypeface(null, tabIndex == 0 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        vIndicatorPrinter.setVisibility(tabIndex == 0 ? View.VISIBLE : View.GONE);
 
         ivTabServer.setColorFilter(tabIndex == 1 ? colorAccent : colorSecondary);
         tvTabServer.setTextColor(tabIndex == 1 ? colorAccent : colorSecondary);
         tvTabServer.setTypeface(null, tabIndex == 1 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        vIndicatorServer.setVisibility(tabIndex == 1 ? View.VISIBLE : View.GONE);
 
         ivTabSettings.setColorFilter(tabIndex == 2 ? colorAccent : colorSecondary);
         tvTabSettings.setTextColor(tabIndex == 2 ? colorAccent : colorSecondary);
         tvTabSettings.setTypeface(null, tabIndex == 2 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        vIndicatorSettings.setVisibility(tabIndex == 2 ? View.VISIBLE : View.GONE);
 
         ivTabLogs.setColorFilter(tabIndex == 3 ? colorAccent : colorSecondary);
         tvTabLogs.setTextColor(tabIndex == 3 ? colorAccent : colorSecondary);
         tvTabLogs.setTypeface(null, tabIndex == 3 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        vIndicatorLogs.setVisibility(tabIndex == 3 ? View.VISIBLE : View.GONE);
 
         // Smooth Scroll back to top
         mainScrollView.post(() -> mainScrollView.smoothScrollTo(0, 0));
@@ -567,6 +578,7 @@ public class MainActivity extends AppCompatActivity {
 
         appendLog("[System] Auto-reconnecting to default printer: " + savedAddress);
         tvPrinterStatus.setText("Connecting...");
+        tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_disconnected);
         btnConnect.setEnabled(false);
 
         printerManager.connectToDefault(this, new BluetoothPrinterManager.ConnectionCallback() {
@@ -575,6 +587,7 @@ public class MainActivity extends AppCompatActivity {
                 btnConnect.setEnabled(true);
                 String name = printerManager.getConnectedDeviceName();
                 tvPrinterStatus.setText("Connected to " + name);
+                tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_connected);
                 appendLog("[System] Connected successfully to " + name);
             }
 
@@ -582,6 +595,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(String message) {
                 btnConnect.setEnabled(true);
                 tvPrinterStatus.setText("Disconnected");
+                tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_disconnected);
                 appendLog("[System error] Reconnect failed: " + message);
             }
         });
@@ -589,6 +603,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void connectToPrinter(BluetoothDevice device) {
         tvPrinterStatus.setText("Connecting...");
+        tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_disconnected);
         btnConnect.setEnabled(false);
         appendLog("[System] Connecting to " + device.getAddress() + "...");
 
@@ -598,9 +613,11 @@ public class MainActivity extends AppCompatActivity {
                 btnConnect.setEnabled(true);
                 try {
                     tvPrinterStatus.setText("Connected to " + device.getName());
+                    tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_connected);
                     appendLog("[System] Connected to " + device.getName());
                 } catch (SecurityException se) {
                     tvPrinterStatus.setText("Connected to " + device.getAddress());
+                    tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_connected);
                     appendLog("[System] Connected to " + device.getAddress());
                 }
                 Toast.makeText(MainActivity.this, "Printer connected!", Toast.LENGTH_SHORT).show();
@@ -610,6 +627,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(String message) {
                 btnConnect.setEnabled(true);
                 tvPrinterStatus.setText("Disconnected");
+                tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_disconnected);
                 appendLog("[System error] Connection failed: " + message);
                 Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
             }
@@ -624,10 +642,10 @@ public class MainActivity extends AppCompatActivity {
         if (running) {
             String ip = getIPAddress();
             tvServerStatus.setText("Running on:\nhttp://localhost:" + port + "\nhttp://" + ip + ":" + port);
-            tvServerStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_green_light));
+            tvServerStatus.setBackgroundResource(R.drawable.bg_status_connected);
         } else {
             tvServerStatus.setText("Stopped");
-            tvServerStatus.setTextColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
+            tvServerStatus.setBackgroundResource(R.drawable.bg_status_disconnected);
         }
     }
 
@@ -691,7 +709,8 @@ public class MainActivity extends AppCompatActivity {
             bytes.write(ESC_FEED);
 
             appendLog("[Test] Sending ESC/POS text receipt print...");
-            boolean ok = printerManager.sendData(bytes.toByteArray());
+            byte[] finalBytes = EscPosDriver.appendWatermark(bytes.toByteArray());
+            boolean ok = printerManager.sendData(finalBytes);
             if (ok) {
                 Toast.makeText(this, "Receipt sent!", Toast.LENGTH_SHORT).show();
                 appendLog("[Test] Text receipt print successful.");
@@ -840,8 +859,10 @@ public class MainActivity extends AppCompatActivity {
         }
         if (printerManager.isConnected()) {
             tvPrinterStatus.setText("Connected to " + printerManager.getConnectedDeviceName());
+            tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_connected);
         } else {
             tvPrinterStatus.setText("Disconnected");
+            tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_disconnected);
         }
     }
 

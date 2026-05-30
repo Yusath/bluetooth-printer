@@ -1,3 +1,32 @@
+# 🚀 Release Notes - v1.0.3
+
+Welcome to the **v1.0.3** milestone release of **Blutut Printer (Web & TCP Print Bridge)**!
+
+This release introduces a stunning **Premium Modern UI/UX Revamp** that transforms the interface from a legacy aesthetic into a state-of-the-art, elegant cybernetic dark-themed dashboard. It also implements an intelligent **Badan Usaha Milik STIT Riyadhussholihiin (BUMS)** footnote watermark that prints on every successful receipt.
+
+---
+
+## 🌟 What's New in This Release
+
+### 📱 1. Premium & Elegant UI/UX Revamp
+*   **Floating Navigation Dock**: Replaced the traditional flat bottom bar with a gorgeous, rounded floating capsule navigation dock utilizing double-stroke neon-glowing borders and margins, creating a beautiful floating island effect.
+*   **Active Tab Indicators**: Added high-fidelity, interactive 2.5dp Sky Blue neon indicators underneath the active tab icon to give a premium, responsive feel.
+*   **Modern Status Pill Badges**: Converted static key-value statuses into visually striking rounded pill badges using vibrant gradients (Emerald-Teal for Active/Running states and Slate-Rose outlines for Stopped/Disconnected states).
+*   **Sleek Custom Spinners**: Handled custom outer and dropdown layouts with beautiful typography (`sans-serif-medium`) and custom chevron vectors (`ic_arrow_down`), completely removing legacy, outdated Android system spinner styles.
+*   **Space-Efficient Layouts**: Replaced oversized full-width testing buttons with side-by-side action controls, saving screen real estate.
+*   **Glowing Terminal Logs**: Monospace console terminal log styled with rounded bounds and a radiant `#00FFCC` neon-green monospace layout.
+
+### 🖨️ 2. Smart BUMS Footnote Watermark
+*   **Two-Line Layout**: Appends a beautiful 2-line watermark centered at the bottom of every receipt:
+    ```text
+                      BUMS
+    Badan Usaha Milik STIT Riyadhussholihiin
+    ```
+*   **Font B Compact Sizing**: Printed in tiny, elegant, and crisp **Font B** (`ESC M 1`), which fits perfectly on standard 58mm budget printers without line wrapping while remaining highly readable.
+*   **Smart Stream Injector**: Scans incoming ESC/POS streams for paper cuts or feed commands and injects the watermark precisely *before* them so it never gets cut off or printed on the next receipt. Works universally for HTTP POST, raw TCP, and PDF System Print Services.
+
+---
+
 # 🚀 Release Notes - v1.0.2
 
 Welcome to the **v1.0.2** milestone release of **Blutut Printer (Web & TCP Print Bridge)**! 
