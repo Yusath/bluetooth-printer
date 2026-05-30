@@ -1,9 +1,9 @@
 package com.antigravity.blututprinter;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.ProgressDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.DialogInterface;
+import android.widget.TextView;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
@@ -197,10 +197,10 @@ public class AutoUpdater {
     }
 
     private static void showUpdateDialog(final Activity activity, final String newVersion, final String currentVersion, final String downloadUrl) {
-        new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_DARK)
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                 .setTitle("Update Available!")
                 .setMessage("A new version (" + newVersion + ") is available. You are currently on " + currentVersion + ".\n\nWould you like to download and install the update now?")
-                .setPositiveButton("Update", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Update Now", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         checkInstallPermissionAndDownload(activity, downloadUrl);
@@ -214,7 +214,7 @@ public class AutoUpdater {
     private static void checkInstallPermissionAndDownload(final Activity activity, final String downloadUrl) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!activity.getPackageManager().canRequestPackageInstalls()) {
-                new AlertDialog.Builder(activity, AlertDialog.THEME_DEVICE_DEFAULT_DARK)
+                new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
                         .setTitle("Permission Required")
                         .setMessage("To install updates, you must grant permission to allow installing unknown apps from this source.")
                         .setPositiveButton("Go to Settings", new DialogInterface.OnClickListener() {
@@ -235,13 +235,25 @@ public class AutoUpdater {
     }
 
     private static void downloadAndInstallApk(final Activity activity, final String downloadUrl) {
-        final ProgressDialog progressDialog = new ProgressDialog(activity, ProgressDialog.THEME_DEVICE_DEFAULT_DARK);
-        progressDialog.setTitle("Downloading Update");
-        progressDialog.setMessage("Connecting to server...");
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressDialog.setMax(100);
-        progressDialog.setCancelable(false);
-        progressDialog.setIndeterminate(true);
+        // Inflate custom modern progress view layout
+        final android.view.LayoutInflater inflater = activity.getLayoutInflater();
+        final android.view.View dialogView = inflater.inflate(R.layout.dialog_download_progress, null);
+        
+        final com.google.android.material.progressindicator.LinearProgressIndicator progressIndicator = 
+                dialogView.findViewById(R.id.downloadProgressIndicator);
+        final TextView tvProgressPercent = dialogView.findViewById(R.id.tvProgressPercent);
+        final TextView tvProgressMessage = dialogView.findViewById(R.id.tvProgressMessage);
+        
+        final AlertDialog progressDialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+                
+        // Ensure background is transparent so the rounded card is beautifully drawn
+        if (progressDialog.getWindow() != null) {
+            progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        
         progressDialog.show();
 
         executor.execute(new Runnable() {
@@ -253,12 +265,6 @@ public class AutoUpdater {
                     conn.connect();
 
                     final int fileLength = conn.getContentLength();
-                    mainHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            progressDialog.setIndeterminate(false);
-                        }
-                    });
 
                     InputStream input = new BufferedInputStream(url.openStream(), 8192);
                     
@@ -276,10 +282,13 @@ public class AutoUpdater {
                         total += count;
                         if (fileLength > 0) {
                             final int progress = (int) (total * 100 / fileLength);
+                            final long currentTotal = total;
                             mainHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    progressDialog.setProgress(progress);
+                                    progressIndicator.setProgress(progress);
+                                    tvProgressPercent.setText(progress + "%");
+                                    tvProgressMessage.setText("Downloading: " + (currentTotal / 1024) + " KB / " + (fileLength / 1024) + " KB");
                                 }
                             });
                         }
@@ -322,7 +331,7 @@ public class AutoUpdater {
             activity.startActivity(intent);
         } catch (Exception e) {
             Log.e(TAG, "Error running APK installation intent", e);
-            Toast.makeText(activity, "Could not open installer: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "Could not open installer: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }

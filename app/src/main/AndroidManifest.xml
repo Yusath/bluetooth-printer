@@ -27,6 +27,7 @@
 
     <application
         android:allowBackup="true"
+        android:hasFragileUserData="true"
         android:icon="@android:drawable/stat_sys_data_bluetooth"
         android:label="@string/app_name"
         android:roundIcon="@android:drawable/stat_sys_data_bluetooth"

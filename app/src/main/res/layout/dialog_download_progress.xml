@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_spinner_box"
+    android:backgroundTint="@color/bg_slate_card">
+
+    <TextView
+        android:id="@+id/tvProgressTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Downloading Update"
+        android:textColor="@color/text_primary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvProgressPercent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="0%"
+        android:textColor="@color/accent_blue"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="end"
+        android:layout_marginBottom="8dp"/>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/downloadProgressIndicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"
+        android:progress="0"
+        app:indicatorColor="@color/accent_blue"
+        app:trackColor="@color/border_glass"
+        app:trackCornerRadius="4dp"
+        app:trackThickness="8dp"
+        android:layout_marginBottom="12dp"/>
+
+    <TextView
+        android:id="@+id/tvProgressMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Connecting to server..."
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif"/>
+
+</LinearLayout>

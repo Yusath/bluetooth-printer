@@ -1,29 +1,42 @@
 # 🚀 Release Notes - v1.0.3
 
-Welcome to the **v1.0.3** milestone release of **Blutut Printer (Web & TCP Print Bridge)**!
+Selamat datang di rilis milestone **v1.0.3** dari **Blutut Printer (Web & TCP Print Bridge)**!
 
-This release introduces a stunning **Premium Modern UI/UX Revamp** that transforms the interface from a legacy aesthetic into a state-of-the-art, elegant cybernetic dark-themed dashboard. It also implements an intelligent **Badan Usaha Milik STIT Riyadhussholihiin (BUMS)** footnote watermark that prints on every successful receipt.
+Rilis ini menghadirkan **Perombakan UI/UX Premium Modern** yang mengubah total antarmuka aplikasi dari gaya lama menjadi dasbor modern bertema gelap (*cybernetic dark-themed dashboard*). Selain itu, versi ini menyertakan fitur cetak **Watermark Cerdas BUMS STIT Riyadhussholihiin** rata tengah 2 baris, sistem popup dialog pembaruan berbasis Google Material 3 dengan progress bar kustom horizontal, perlindungan data pengaturan dari uninstal manual, serta label versi dinamis pada dasbor utama.
 
 ---
 
-## 🌟 What's New in This Release
+## 🌟 Apa yang Baru di Rilis Ini
 
-### 📱 1. Premium & Elegant UI/UX Revamp
-*   **Floating Navigation Dock**: Replaced the traditional flat bottom bar with a gorgeous, rounded floating capsule navigation dock utilizing double-stroke neon-glowing borders and margins, creating a beautiful floating island effect.
-*   **Active Tab Indicators**: Added high-fidelity, interactive 2.5dp Sky Blue neon indicators underneath the active tab icon to give a premium, responsive feel.
-*   **Modern Status Pill Badges**: Converted static key-value statuses into visually striking rounded pill badges using vibrant gradients (Emerald-Teal for Active/Running states and Slate-Rose outlines for Stopped/Disconnected states).
-*   **Sleek Custom Spinners**: Handled custom outer and dropdown layouts with beautiful typography (`sans-serif-medium`) and custom chevron vectors (`ic_arrow_down`), completely removing legacy, outdated Android system spinner styles.
-*   **Space-Efficient Layouts**: Replaced oversized full-width testing buttons with side-by-side action controls, saving screen real estate.
-*   **Glowing Terminal Logs**: Monospace console terminal log styled with rounded bounds and a radiant `#00FFCC` neon-green monospace layout.
+### 📱 1. Perombakan UI/UX Premium & Modern (Menghilangkan Kesan Aplikasi Tua)
+*   **Floating Navigation Dock (Bilah Menu Melayang)**: Navigasi bawah kini didesain melayang berupa kapsul rounded modern (`bg_nav_dock`) berjarak dari tepi layar dengan sudut melengkung sempurna (`32dp`) dan border neon sky-blue tipis.
+*   **Active Tab Indicators**: Menambahkan garis kapsul aktif (2.5dp Sky Blue) di bawah ikon tab yang sedang aktif untuk memberikan umpan balik taktil dan responsif saat berpindah menu.
+*   **Warna Transisi Modern**: Transisi aktif/non-aktif pada navigasi kini menggunakan warna Sky Blue (`accent_blue`) dan Slate Grey (`text_secondary`) alih-alih warna holo biru kuno bawaan Android lama.
+*   **Dynamic Status Pill Badges**: Mengubah teks status statis yang kaku menjadi pill badge rounded dinamis yang secara otomatis berubah latar belakang:
+    *   *Aktif/Berjalan (Running/Connected)*: Latar belakang gradasi Emerald-Teal dengan teks putih kontras tinggi yang bersinar (*glowing*).
+    *   *Mati/Terputus (Stopped/Disconnected)*: Latar belakang Slate gelap dengan outline warna Rose/Muted Red yang elegan.
+*   **Custom Dropdown Spinner**: Spinner Printer, Ukuran Kertas, dan Jeda Baris dirombak menggunakan layout kustom (`custom_spinner_item` & `custom_spinner_dropdown_item`) dengan font modern `sans-serif-medium` dan ikon penunjuk chevron minimalis, menghilangkan total drop-down sistem bawaan Android yang terlihat tua.
+*   **Label Versi Dinamis (Baru!)**: Menambahkan label penunjuk versi aplikasi (`tvAppVersion`) tepat di bawah sub-keterangan dasbor utama. Informasi versi diambil secara dinamis dari `versionName` di Gradle sistem, sehingga akan terperbarui otomatis di rilis mendatang tanpa edit XML manual.
+*   **Tata Letak Ergonomis**: Tombol pengujian printer "Test Text" (Test Text) dan "Test Image" (Test Gambar) kini diposisikan bersebelahan menyamping (*horizontal row*) secara presisi untuk menghemat ruang layar dan mempermudah akses.
+*   **Monospace Console Log**: Panel log didesain ulang dengan sudut melengkung dan warna teks hijau neon `#00FFCC` yang bercahaya tajam.
 
-### 🖨️ 2. Smart BUMS Footnote Watermark
-*   **Two-Line Layout**: Appends a beautiful 2-line watermark centered at the bottom of every receipt:
-    ```text
-                      BUMS
-    Badan Usaha Milik STIT Riyadhussholihiin
-    ```
-*   **Font B Compact Sizing**: Printed in tiny, elegant, and crisp **Font B** (`ESC M 1`), which fits perfectly on standard 58mm budget printers without line wrapping while remaining highly readable.
-*   **Smart Stream Injector**: Scans incoming ESC/POS streams for paper cuts or feed commands and injects the watermark precisely *before* them so it never gets cut off or printed on the next receipt. Works universally for HTTP POST, raw TCP, and PDF System Print Services.
+### 🖨️ 2. Watermark Cerdas 2 Baris BUMS
+Secara otomatis menyuntikkan catatan kaki watermark 2 baris rata tengah pada setiap struk belanja/faktur POS Anda:
+```text
+                  BUMS
+Badan Usaha Milik STIT Riyadhussholihiin
+```
+*   **Font B Compact Sizing**: Watermark dicetak dalam **Font B** (`ESC M 1`), yaitu ukuran font rapat 9x17 dot yang sangat pas untuk menampung teks panjang 39 karakter pada kertas 58mm tanpa terpotong atau terlipat barisnya (*no auto-wrapping*), namun tetap terbaca dengan sangat tajam dan jelas.
+*   **Smart Stream Injector**: Algoritma cerdas yang memindai 15 byte terakhir stream cetakan untuk mendeteksi perintah pemotongan kertas otomatis (`GS V`) atau penggulungan kertas (`ESC d`). Watermark akan **disuntikkan tepat sebelum perintah potong/gulung** agar tercetak sempurna di posisi paling bawah struk sebelum kertas robek/terpotong, baik dicetak via HTTP POST, TCP raw, maupun PDF System Print Service.
+
+### 🔄 3. Popup Dialog Pembaruan Modern & Custom Progress Bar (Baru!)
+*   **Material 3 Dialogs**: Mengganti `AlertDialog.Builder` dengan **`MaterialAlertDialogBuilder`** yang memiliki sudut melengkung estetik dan tipografi modern Material 3 yang menyatu dengan tema gelap dasbor.
+*   **Sleek LinearProgressIndicator**: Menghapus `ProgressDialog` jadul (deprecated) dan menggantinya dengan dialog kustom yang memuat `dialog_download_progress.xml`. Saat proses download berlangsung, progress bar horizontal berwarna Sky Blue (`accent_blue`) akan meluncur mulus secara real-time, lengkap dengan teks persentase dinamis (misal: "85%") dan statistik ukuran unduhan (misal: "Downloading: 104 KB / 134 KB").
+*   **Auto-Redirect Instan**: Tepat ketika unduhan selesai, dialog kustom langsung tertutup otomatis dan langsung mengarahkan Anda ke layar instalasi bawaan Android tanpa ada klik jeda di dalam aplikasi.
+
+### 🛡️ 4. Pengaturan Perlindungan Data dari Reset / Uninstal (Baru!)
+*   **Fragile User Data Protection**: Menyematkan parameter `android:hasFragileUserData="true"` di dalam berkas manifest.
+*   **Tahan Banting**: Mulai Android 10+, jika Anda terpaksa menghapus instalan manual aplikasi lama (misalnya saat beralih dari versi debug kompilasi lokal ke versi release cloud), Android secara cerdas akan menawarkan kotak centang **"Keep app data? (Simpan data aplikasi?)"**. Cukup centang kotak tersebut, maka seluruh pengaturan Bluetooth printer dan port server Anda akan tetap aman dan langsung pulih otomatis saat APK versi baru dipasang!
 
 ---
 

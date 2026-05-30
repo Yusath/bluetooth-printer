@@ -229,6 +229,17 @@ public class MainActivity extends AppCompatActivity {
         btnTestImagePrint = findViewById(R.id.btnTestImagePrint);
         btnOpenPrintSettings = findViewById(R.id.btnOpenPrintSettings);
 
+        // Dynamically display app version
+        TextView tvAppVersion = findViewById(R.id.tvAppVersion);
+        if (tvAppVersion != null) {
+            try {
+                android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                tvAppVersion.setText("v" + pInfo.versionName);
+            } catch (Exception e) {
+                tvAppVersion.setText("v1.0.3");
+            }
+        }
+
         // Warning Banner
         llBluetoothWarning = findViewById(R.id.llBluetoothWarning);
 
