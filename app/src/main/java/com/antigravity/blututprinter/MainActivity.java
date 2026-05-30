@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private Spinner spPrinters;
     private Button btnConnect;
     private Button btnTestPrint;
+    private Button btnOpenPrintSettings;
 
     private List<BluetoothDevice> deviceList = new ArrayList<>();
     private ArrayAdapter<String> spinnerAdapter;
@@ -127,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
         spPrinters = findViewById(R.id.spPrinters);
         btnConnect = findViewById(R.id.btnConnect);
         btnTestPrint = findViewById(R.id.btnTestPrint);
+        btnOpenPrintSettings = findViewById(R.id.btnOpenPrintSettings);
 
         spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, deviceNames);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -209,6 +211,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Open System Print Settings
+        btnOpenPrintSettings.setOnClickListener(v -> {
+            try {
+                Intent intent = new Intent(android.provider.Settings.ACTION_PRINT_SETTINGS);
+                startActivity(intent);
+            } catch (Exception e) {
+                Toast.makeText(this, "Could not open print settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
