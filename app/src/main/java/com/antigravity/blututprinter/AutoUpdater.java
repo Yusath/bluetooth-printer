@@ -67,6 +67,21 @@ public class AutoUpdater {
                     conn.setRequestProperty("User-Agent", "Blutut-Printer-Updater");
 
                     int responseCode = conn.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+                        // 404 indicates no releases have been published on this repository yet
+                        mainHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (callback != null) {
+                                    callback.onNoUpdate();
+                                } else if (manualCheck) {
+                                    Toast.makeText(activity, "No releases found on GitHub yet.", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                        return;
+                    }
+
                     if (responseCode != HttpURLConnection.HTTP_OK) {
                         postError(callback, "GitHub server returned code: " + responseCode);
                         return;

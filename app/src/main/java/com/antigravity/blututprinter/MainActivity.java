@@ -23,6 +23,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -82,6 +83,13 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView svLogs;
     private TextView tvLogs;
     private Button btnClearLogs;
+
+    // Bottom Navigation Elements
+    private LinearLayout btnTabPrinter, btnTabServer, btnTabSettings, btnTabLogs;
+    private ImageView ivTabPrinter, ivTabServer, ivTabSettings, ivTabLogs;
+    private TextView tvTabPrinter, tvTabServer, tvTabSettings, tvTabLogs;
+    private LinearLayout tabLayoutPrinter, tabLayoutServer, tabLayoutSettings, tabLayoutLogs;
+    private ScrollView mainScrollView;
 
     private List<BluetoothDevice> deviceList = new ArrayList<>();
     private ArrayAdapter<String> spinnerAdapter;
@@ -203,6 +211,9 @@ public class MainActivity extends AppCompatActivity {
         if (swAutoUpdate.isChecked()) {
             AutoUpdater.checkForUpdates(this, false, null);
         }
+
+        // Initialize Tab
+        switchTab(0);
     }
 
     private void initUI() {
@@ -233,12 +244,41 @@ public class MainActivity extends AppCompatActivity {
         tvLogs = findViewById(R.id.tvLogs);
         btnClearLogs = findViewById(R.id.btnClearLogs);
 
+        // Bottom Navigation Bar
+        btnTabPrinter = findViewById(R.id.btnTabPrinter);
+        btnTabServer = findViewById(R.id.btnTabServer);
+        btnTabSettings = findViewById(R.id.btnTabSettings);
+        btnTabLogs = findViewById(R.id.btnTabLogs);
+
+        ivTabPrinter = findViewById(R.id.ivTabPrinter);
+        ivTabServer = findViewById(R.id.ivTabServer);
+        ivTabSettings = findViewById(R.id.ivTabSettings);
+        ivTabLogs = findViewById(R.id.ivTabLogs);
+
+        tvTabPrinter = findViewById(R.id.tvTabPrinter);
+        tvTabServer = findViewById(R.id.tvTabServer);
+        tvTabSettings = findViewById(R.id.tvTabSettings);
+        tvTabLogs = findViewById(R.id.tvTabLogs);
+
+        tabLayoutPrinter = findViewById(R.id.tabLayoutPrinter);
+        tabLayoutServer = findViewById(R.id.tabLayoutServer);
+        tabLayoutSettings = findViewById(R.id.tabLayoutSettings);
+        tabLayoutLogs = findViewById(R.id.tabLayoutLogs);
+        
+        mainScrollView = findViewById(R.id.mainScrollView);
+
         spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, deviceNames);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spPrinters.setAdapter(spinnerAdapter);
     }
 
     private void setupListeners() {
+        // Bottom Nav Listeners
+        btnTabPrinter.setOnClickListener(v -> switchTab(0));
+        btnTabServer.setOnClickListener(v -> switchTab(1));
+        btnTabSettings.setOnClickListener(v -> switchTab(2));
+        btnTabLogs.setOnClickListener(v -> switchTab(3));
+
         // Toggle Server service
         swStartServer.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Intent serviceIntent = new Intent(this, PrintServerService.class);
@@ -415,6 +455,37 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Could not open print settings: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void switchTab(int tabIndex) {
+        // Toggle Layouts
+        tabLayoutPrinter.setVisibility(tabIndex == 0 ? View.VISIBLE : View.GONE);
+        tabLayoutServer.setVisibility(tabIndex == 1 ? View.VISIBLE : View.GONE);
+        tabLayoutSettings.setVisibility(tabIndex == 2 ? View.VISIBLE : View.GONE);
+        tabLayoutLogs.setVisibility(tabIndex == 3 ? View.VISIBLE : View.GONE);
+
+        // Reset Colors
+        int colorAccent = ContextCompat.getColor(this, android.R.color.holo_blue_light);
+        int colorSecondary = ContextCompat.getColor(this, android.R.color.darker_gray);
+
+        ivTabPrinter.setColorFilter(tabIndex == 0 ? colorAccent : colorSecondary);
+        tvTabPrinter.setTextColor(tabIndex == 0 ? colorAccent : colorSecondary);
+        tvTabPrinter.setTypeface(null, tabIndex == 0 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+
+        ivTabServer.setColorFilter(tabIndex == 1 ? colorAccent : colorSecondary);
+        tvTabServer.setTextColor(tabIndex == 1 ? colorAccent : colorSecondary);
+        tvTabServer.setTypeface(null, tabIndex == 1 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+
+        ivTabSettings.setColorFilter(tabIndex == 2 ? colorAccent : colorSecondary);
+        tvTabSettings.setTextColor(tabIndex == 2 ? colorAccent : colorSecondary);
+        tvTabSettings.setTypeface(null, tabIndex == 2 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+
+        ivTabLogs.setColorFilter(tabIndex == 3 ? colorAccent : colorSecondary);
+        tvTabLogs.setTextColor(tabIndex == 3 ? colorAccent : colorSecondary);
+        tvTabLogs.setTypeface(null, tabIndex == 3 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+
+        // Smooth Scroll back to top
+        mainScrollView.post(() -> mainScrollView.smoothScrollTo(0, 0));
     }
 
     private void registerReceivers() {
