@@ -88,6 +88,8 @@ public class EscPosDriver {
         // Initialize printer
         output.write(0x1B); // ESC
         output.write(0x40); // @
+        output.write(0x1C); // FS
+        output.write(0x2E); // . (Cancel Kanji character mode)
 
         // GS v 0 Command
         output.write(0x1D); // GS
@@ -147,7 +149,30 @@ public class EscPosDriver {
      */
     public static byte[] applyHeaderAndFooter(byte[] originalData, android.content.Context context) {
         if (originalData == null || originalData.length == 0) return originalData;
-        byte[] withHeader = applyHeader(originalData, context);
+
+        // Prepend printer initialization (ESC @) and cancel Kanji mode (FS .) to ensure text prints correctly
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            stream.write(new byte[]{0x1B, 0x40}); // ESC @
+            stream.write(new byte[]{0x1C, 0x2E}); // FS .
+        } catch (Exception ignored) {}
+
+        byte[] initializedData;
+        // Check if originalData already starts with ESC @ (0x1B 0x40) to avoid double initialization
+        if (originalData.length >= 2 && originalData[0] == 0x1B && originalData[1] == 0x40) {
+            // Strip the existing ESC @ and write the rest
+            try {
+                stream.write(originalData, 2, originalData.length - 2);
+            } catch (Exception ignored) {}
+            initializedData = stream.toByteArray();
+        } else {
+            try {
+                stream.write(originalData);
+            } catch (Exception ignored) {}
+            initializedData = stream.toByteArray();
+        }
+
+        byte[] withHeader = applyHeader(initializedData, context);
         byte[] withFooter = applyFooter(withHeader, context);
         return withFooter;
     }
@@ -169,6 +194,8 @@ public class EscPosDriver {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 // 1. Initialize printer state
                 stream.write(new byte[]{0x1B, 0x40});
+                // Disable Kanji character mode
+                stream.write(new byte[]{0x1C, 0x2E});
                 // 2. Center alignment
                 stream.write(new byte[]{0x1B, 0x61, 0x01});
                 // 3. Bold on
@@ -213,9 +240,13 @@ public class EscPosDriver {
 
         if (headerBytes == null || headerBytes.length == 0) return originalData;
 
-        // Find insertion index: after the first ESC @ if present at the start
+        // Find insertion index: after the first ESC @ and FS . if present
         int insertIndex = 0;
-        if (originalData.length >= 2 && originalData[0] == 0x1B && originalData[1] == 0x40) {
+        if (originalData.length >= 4 && 
+            originalData[0] == 0x1B && originalData[1] == 0x40 && 
+            originalData[2] == 0x1C && originalData[3] == 0x2E) {
+            insertIndex = 4;
+        } else if (originalData.length >= 2 && originalData[0] == 0x1B && originalData[1] == 0x40) {
             insertIndex = 2;
         }
 

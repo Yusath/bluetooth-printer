@@ -174,7 +174,10 @@ public class BluetoothPrinterManager {
             return false;
         }
         try {
-            if (isThrottled && data.length > 512) {
+            if ((isThrottled || data.length > 1024) && data.length > 512) {
+                if (!isThrottled && data.length > 1024) {
+                    Log.d(TAG, "Auto-throttling activated for large payload (" + data.length + " bytes)");
+                }
                 int offset = 0;
                 while (offset < data.length) {
                     int chunkSize = Math.min(512, data.length - offset);
