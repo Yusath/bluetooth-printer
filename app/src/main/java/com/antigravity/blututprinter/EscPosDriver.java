@@ -296,24 +296,24 @@ public class EscPosDriver {
 
         if (footerBytes == null || footerBytes.length == 0) return originalData;
 
-        // Find insertion index: before the first paper feed or cut command in the trailing window (last 30 bytes)
+        // Find insertion index: before the first paper feed or cut command in the trailing window (last 15 bytes)
         int insertIndex = originalData.length;
-        int earliestIndex = -1;
-        int startScan = Math.max(0, originalData.length - 30);
-        for (int i = startScan; i <= originalData.length - 2; i++) {
+        int latestIndex = -1;
+        int startScan = Math.max(0, originalData.length - 15);
+        for (int i = originalData.length - 2; i >= startScan; i--) {
             // Check for GS V command: 0x1D, 0x56
             if (originalData[i] == 0x1D && originalData[i + 1] == 0x56) {
-                earliestIndex = i;
+                latestIndex = i;
                 break;
             }
             // Check for ESC d command: 0x1B, 0x64
             if (originalData[i] == 0x1B && originalData[i + 1] == 0x64) {
-                earliestIndex = i;
+                latestIndex = i;
                 break;
             }
         }
-        if (earliestIndex != -1) {
-            insertIndex = earliestIndex;
+        if (latestIndex != -1) {
+            insertIndex = latestIndex;
         }
 
         ByteArrayOutputStream result = new ByteArrayOutputStream();
