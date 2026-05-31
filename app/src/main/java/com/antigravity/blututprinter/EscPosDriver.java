@@ -131,60 +131,195 @@ public class EscPosDriver {
     /**
      * Appends a two-line footer watermark ("BUMS" and "Badan Usaha Milik STIT Riyadhussholihiin")
      * in Font B, centered alignment, to the original ESC/POS print byte array.
-     * Searches for existing paper cut (GS V) or feed (ESC d) commands at the end (last 15 bytes)
-     * and injects the watermark just before them to ensure it is printed properly before
-     * cutting or feeding.
-     *
-     * @param originalData The original ESC/POS print bytes.
-     * @return Byte array with watermark injected.
+     * Deprecated: Use applyHeaderAndFooter(byte[], Context) instead.
      */
+    @Deprecated
     public static byte[] appendWatermark(byte[] originalData) {
-        if (originalData == null || originalData.length == 0) return originalData;
+        return applyHeaderAndFooter(originalData, null);
+    }
 
-        byte[] watermarkText;
+    /**
+     * Applies custom header and footer configurations (text or image) and corrects the watermark layout.
+     *
+     * @param originalData The original ESC/POS bytes.
+     * @param context Android context to access SharedPreferences. If null, defaults to BUMS watermark footer.
+     * @return Processed ESC/POS bytes.
+     */
+    public static byte[] applyHeaderAndFooter(byte[] originalData, android.content.Context context) {
+        if (originalData == null || originalData.length == 0) return originalData;
+        byte[] withHeader = applyHeader(originalData, context);
+        byte[] withFooter = applyFooter(withHeader, context);
+        return withFooter;
+    }
+
+    private static byte[] applyHeader(byte[] originalData, android.content.Context context) {
+        if (context == null) return originalData; // No header if context is null
+        
+        android.content.SharedPreferences prefs = context.getSharedPreferences("BlututPrinterPrefs", android.content.Context.MODE_PRIVATE);
+        int headerType = prefs.getInt("header_type", 0); // 0 = None, 1 = Text, 2 = Image
+        if (headerType == 0) return originalData;
+
+        byte[] headerBytes = null;
+        if (headerType == 1) {
+            // Text Header
+            String headerText = prefs.getString("header_text", "");
+            if (headerText.isEmpty()) return originalData;
+            
+            try {
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                // 1. Initialize printer state
+                stream.write(new byte[]{0x1B, 0x40});
+                // 2. Center alignment
+                stream.write(new byte[]{0x1B, 0x61, 0x01});
+                // 3. Bold on
+                stream.write(new byte[]{0x1B, 0x45, 0x01});
+                // 4. Text
+                stream.write((headerText + "\n\n").getBytes("UTF-8"));
+                // 5. Bold off & Left alignment reset
+                stream.write(new byte[]{0x1B, 0x45, 0x00});
+                stream.write(new byte[]{0x1B, 0x61, 0x00});
+                
+                headerBytes = stream.toByteArray();
+            } catch (Exception e) {
+                return originalData;
+            }
+        } else if (headerType == 2) {
+            // Image Header
+            String imagePath = prefs.getString("header_image_path", "");
+            if (imagePath.isEmpty()) return originalData;
+            java.io.File imgFile = new java.io.File(imagePath);
+            if (!imgFile.exists()) return originalData;
+            
+            try {
+                android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(imagePath);
+                if (bitmap != null) {
+                    int paperWidth = prefs.getInt("paper_width", 384);
+                    int contrast = prefs.getInt("print_contrast", 128);
+                    // Convert bitmap to ESC/POS with 1 feed line
+                    byte[] imgEscPos = bitmapToEscPos(bitmap, paperWidth, contrast, 1);
+                    bitmap.recycle();
+                    
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    // Center align the image
+                    stream.write(new byte[]{0x1B, 0x61, 0x01});
+                    stream.write(imgEscPos);
+                    stream.write(new byte[]{0x1B, 0x61, 0x00});
+                    headerBytes = stream.toByteArray();
+                }
+            } catch (Exception e) {
+                return originalData;
+            }
+        }
+
+        if (headerBytes == null || headerBytes.length == 0) return originalData;
+
+        // Find insertion index: after the first ESC @ if present at the start
+        int insertIndex = 0;
+        if (originalData.length >= 2 && originalData[0] == 0x1B && originalData[1] == 0x40) {
+            insertIndex = 2;
+        }
+
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
         try {
-            java.io.ByteArrayOutputStream watermarkStream = new java.io.ByteArrayOutputStream();
-            
-            // 1. Center alignment
-            watermarkStream.write(new byte[]{0x1B, 0x61, 0x01});
-            
-            // 2. Select Font B (small, compact 9x17 dot font)
-            watermarkStream.write(new byte[]{0x1B, 0x4D, 0x01});
-            
-            // 3. Watermark text (Line 1: BUMS, Line 2: Badan Usaha Milik STIT Riyadhussholihiin)
-            // Added safe padding around the text
-            watermarkStream.write("\nBUMS\nBadan Usaha Milik STIT Riyadhussholihiin\n".getBytes("UTF-8"));
-            
-            // 4. Reset Font A (standard) and reset left alignment
-            watermarkStream.write(new byte[]{0x1B, 0x4D, 0x00});
-            watermarkStream.write(new byte[]{0x1B, 0x61, 0x00});
-            
-            watermarkText = watermarkStream.toByteArray();
+            result.write(originalData, 0, insertIndex);
+            result.write(headerBytes);
+            result.write(originalData, insertIndex, originalData.length - insertIndex);
+            return result.toByteArray();
         } catch (java.io.IOException e) {
             return originalData;
         }
+    }
 
+    private static byte[] applyFooter(byte[] originalData, android.content.Context context) {
+        byte[] footerBytes = null;
+        int footerType = 1; // Default to Text (1) for backwards compatibility
+        String footerText = "BUMS\nBadan Usaha Milik STIT Riyadhussholihiin";
+        String imagePath = "";
+        int paperWidth = 384;
+        int contrast = 128;
+
+        if (context != null) {
+            android.content.SharedPreferences prefs = context.getSharedPreferences("BlututPrinterPrefs", android.content.Context.MODE_PRIVATE);
+            footerType = prefs.getInt("footer_type", 1);
+            footerText = prefs.getString("footer_text", "BUMS\nBadan Usaha Milik STIT Riyadhussholihiin");
+            imagePath = prefs.getString("footer_image_path", "");
+            paperWidth = prefs.getInt("paper_width", 384);
+            contrast = prefs.getInt("print_contrast", 128);
+        }
+
+        if (footerType == 0) return originalData;
+
+        if (footerType == 1) {
+            // Text Footer
+            if (footerText.isEmpty()) return originalData;
+
+            try {
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                // 1. Center alignment
+                stream.write(new byte[]{0x1B, 0x61, 0x01});
+                // 2. Select Font B (small, compact 9x17 dot font)
+                stream.write(new byte[]{0x1B, 0x4D, 0x01});
+                // 3. Text
+                stream.write(("\n" + footerText + "\n").getBytes("UTF-8"));
+                // 4. Reset Font A (standard) and reset left alignment
+                stream.write(new byte[]{0x1B, 0x4D, 0x00});
+                stream.write(new byte[]{0x1B, 0x61, 0x00});
+                
+                footerBytes = stream.toByteArray();
+            } catch (Exception e) {
+                return originalData;
+            }
+        } else if (footerType == 2) {
+            // Image Footer
+            if (imagePath.isEmpty()) return originalData;
+            java.io.File imgFile = new java.io.File(imagePath);
+            if (!imgFile.exists()) return originalData;
+
+            try {
+                android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(imagePath);
+                if (bitmap != null) {
+                    // Convert bitmap to ESC/POS with 1 feed line
+                    byte[] imgEscPos = bitmapToEscPos(bitmap, paperWidth, contrast, 1);
+                    bitmap.recycle();
+
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    // Center align the image
+                    stream.write(new byte[]{0x1B, 0x61, 0x01});
+                    stream.write(imgEscPos);
+                    stream.write(new byte[]{0x1B, 0x61, 0x00});
+                    footerBytes = stream.toByteArray();
+                }
+            } catch (Exception e) {
+                return originalData;
+            }
+        }
+
+        if (footerBytes == null || footerBytes.length == 0) return originalData;
+
+        // Find insertion index: before the first paper feed or cut command in the trailing window (last 30 bytes)
         int insertIndex = originalData.length;
-
-        // Look at the last 15 bytes of originalData to check for typical cut (GS V) or feed (ESC d) commands
-        for (int i = originalData.length - 2; i >= Math.max(0, originalData.length - 15); i--) {
+        int earliestIndex = -1;
+        int startScan = Math.max(0, originalData.length - 30);
+        for (int i = startScan; i <= originalData.length - 2; i++) {
             // Check for GS V command: 0x1D, 0x56
             if (originalData[i] == 0x1D && originalData[i + 1] == 0x56) {
-                insertIndex = i;
+                earliestIndex = i;
                 break;
             }
             // Check for ESC d command: 0x1B, 0x64
             if (originalData[i] == 0x1B && originalData[i + 1] == 0x64) {
-                insertIndex = i;
+                earliestIndex = i;
                 break;
             }
         }
+        if (earliestIndex != -1) {
+            insertIndex = earliestIndex;
+        }
 
-        // Construct final data stream
-        java.io.ByteArrayOutputStream result = new java.io.ByteArrayOutputStream();
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
         try {
             result.write(originalData, 0, insertIndex);
-            result.write(watermarkText);
+            result.write(footerBytes);
             if (insertIndex < originalData.length) {
                 result.write(originalData, insertIndex, originalData.length - insertIndex);
             }

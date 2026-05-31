@@ -202,7 +202,7 @@ public class RawBTIntentActivity extends AppCompatActivity {
             @Override
             public void run() {
                 // Apply the beautiful BUMS watermark!
-                byte[] watermarkedData = EscPosDriver.appendWatermark(finalPrintData);
+                byte[] watermarkedData = EscPosDriver.applyHeaderAndFooter(finalPrintData, RawBTIntentActivity.this);
                 final boolean success = printer.sendData(watermarkedData);
                 
                 runOnUiThread(new Runnable() {

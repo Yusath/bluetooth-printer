@@ -123,7 +123,7 @@ public class VirtualPrinterService extends PrintService {
                                         page.close();
 
                                         byte[] escPosData = EscPosDriver.bitmapToEscPos(bitmap, targetWidth, contrastThreshold, feedLines);
-                                        byte[] finalData = EscPosDriver.appendWatermark(escPosData);
+                                        byte[] finalData = EscPosDriver.applyHeaderAndFooter(escPosData, VirtualPrinterService.this);
 
                                         boolean ok = printer.sendData(finalData);
                                         if (!ok) {
@@ -349,7 +349,7 @@ public class VirtualPrinterService extends PrintService {
 
                         // Dither and convert to ESC/POS raster bit command with dynamic threshold and custom extra feeds
                         byte[] escPosData = EscPosDriver.bitmapToEscPos(bitmap, targetWidth, contrastThreshold, feedLines);
-                        byte[] finalData = EscPosDriver.appendWatermark(escPosData);
+                        byte[] finalData = EscPosDriver.applyHeaderAndFooter(escPosData, VirtualPrinterService.this);
                         
                         // Send data to bluetooth printer
                         boolean ok = printer.sendData(finalData);

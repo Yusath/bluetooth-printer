@@ -362,7 +362,7 @@ public class PrintServerService extends Service {
 
     private boolean printBytes(byte[] bytes) {
         if (printerManager.isConnected()) {
-            byte[] watermarked = EscPosDriver.appendWatermark(bytes);
+            byte[] watermarked = EscPosDriver.applyHeaderAndFooter(bytes, PrintServerService.this);
             return printerManager.sendData(watermarked);
         }
         return false;

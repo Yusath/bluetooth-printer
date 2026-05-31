@@ -41,6 +41,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 import java.io.ByteArrayOutputStream;
 import java.net.InetAddress;
@@ -87,6 +89,24 @@ public class MainActivity extends AppCompatActivity {
     private Spinner spPaperSize;
     private Spinner spFeedLines;
     private SeekBar sbContrast;
+
+    // Custom Header & Footer Settings UI
+    private Spinner spHeaderType;
+    private EditText etHeaderCustomText;
+    private Button btnSelectHeaderImage;
+    private ImageView ivHeaderPreview;
+    private LinearLayout llHeaderTextContainer;
+    private LinearLayout llHeaderImageContainer;
+
+    private Spinner spFooterType;
+    private EditText etFooterCustomText;
+    private Button btnSelectFooterImage;
+    private ImageView ivFooterPreview;
+    private LinearLayout llFooterTextContainer;
+    private LinearLayout llFooterImageContainer;
+
+    private ActivityResultLauncher<Intent> headerImageLauncher;
+    private ActivityResultLauncher<Intent> footerImageLauncher;
 
     // Activity Log Dashboard
     private ScrollView svLogs;
@@ -164,8 +184,35 @@ public class MainActivity extends AppCompatActivity {
         printerManager = BluetoothPrinterManager.getInstance();
         prefs = getSharedPreferences("BlututPrinterPrefs", MODE_PRIVATE);
 
+        // Register Activity Result Launchers for custom header/footer image selection
+        headerImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        android.net.Uri uri = result.getData().getData();
+                        if (uri != null) {
+                            handleImageSelected(uri, true);
+                        }
+                    }
+                }
+        );
+
+        footerImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        android.net.Uri uri = result.getData().getData();
+                        if (uri != null) {
+                            handleImageSelected(uri, false);
+                        }
+                    }
+                }
+        );
+
         initUI();
+        initHeaderFooterUI();
         setupListeners();
+        setupHeaderFooterListeners();
         registerReceivers();
 
         // Load existing settings
@@ -750,7 +797,7 @@ public class MainActivity extends AppCompatActivity {
             bytes.write(ESC_FEED);
 
             appendLog("[Test] Sending ESC/POS text receipt print...");
-            byte[] finalBytes = EscPosDriver.appendWatermark(bytes.toByteArray());
+            byte[] finalBytes = EscPosDriver.applyHeaderAndFooter(bytes.toByteArray(), MainActivity.this);
             boolean ok = printerManager.sendData(finalBytes);
             if (ok) {
                 Toast.makeText(this, "Receipt sent!", Toast.LENGTH_SHORT).show();
@@ -1007,7 +1054,7 @@ public class MainActivity extends AppCompatActivity {
                             page.close();
 
                             byte[] escPosData = EscPosDriver.bitmapToEscPos(bitmap, targetWidth, contrastThreshold, feedLines);
-                            byte[] finalData = EscPosDriver.appendWatermark(escPosData);
+                            byte[] finalData = EscPosDriver.applyHeaderAndFooter(escPosData, MainActivity.this);
 
                             boolean ok = printerManager.sendData(finalData);
                             if (!ok) {
@@ -1047,6 +1094,183 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         }).start();
+    }
+
+    private void initHeaderFooterUI() {
+        spHeaderType = findViewById(R.id.spHeaderType);
+        etHeaderCustomText = findViewById(R.id.etHeaderCustomText);
+        btnSelectHeaderImage = findViewById(R.id.btnSelectHeaderImage);
+        ivHeaderPreview = findViewById(R.id.ivHeaderPreview);
+        llHeaderTextContainer = findViewById(R.id.llHeaderTextContainer);
+        llHeaderImageContainer = findViewById(R.id.llHeaderImageContainer);
+
+        spFooterType = findViewById(R.id.spFooterType);
+        etFooterCustomText = findViewById(R.id.etFooterCustomText);
+        btnSelectFooterImage = findViewById(R.id.btnSelectFooterImage);
+        ivFooterPreview = findViewById(R.id.ivFooterPreview);
+        llFooterTextContainer = findViewById(R.id.llFooterTextContainer);
+        llFooterImageContainer = findViewById(R.id.llFooterImageContainer);
+
+        // Populate Header Type Spinner
+        List<String> headerTypes = new ArrayList<>();
+        headerTypes.add("None / Disabled");
+        headerTypes.add("Custom Text");
+        headerTypes.add("Custom Image");
+        ArrayAdapter<String> headerTypeAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, headerTypes);
+        headerTypeAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
+        spHeaderType.setAdapter(headerTypeAdapter);
+
+        // Populate Footer Type Spinner
+        List<String> footerTypes = new ArrayList<>();
+        footerTypes.add("None / Disabled");
+        footerTypes.add("Custom Text");
+        footerTypes.add("Custom Image");
+        ArrayAdapter<String> footerTypeAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, footerTypes);
+        footerTypeAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
+        spFooterType.setAdapter(footerTypeAdapter);
+
+        // Load saved selections
+        int savedHeaderType = prefs.getInt("header_type", 0);
+        spHeaderType.setSelection(savedHeaderType);
+        
+        String savedHeaderText = prefs.getString("header_text", "");
+        etHeaderCustomText.setText(savedHeaderText);
+        
+        int savedFooterType = prefs.getInt("footer_type", 1); // Default to Text (1) for backwards compatibility
+        spFooterType.setSelection(savedFooterType);
+        
+        String savedFooterText = prefs.getString("footer_text", "BUMS\nBadan Usaha Milik STIT Riyadhussholihiin");
+        etFooterCustomText.setText(savedFooterText);
+
+        // Previews
+        updateImagePreview(true, prefs.getString("header_image_path", ""));
+        updateImagePreview(false, prefs.getString("footer_image_path", ""));
+
+        // Visibility
+        toggleHeaderContainers(savedHeaderType);
+        toggleFooterContainers(savedFooterType);
+    }
+
+    private void toggleHeaderContainers(int type) {
+        if (llHeaderTextContainer == null || llHeaderImageContainer == null) return;
+        llHeaderTextContainer.setVisibility(type == 1 ? View.VISIBLE : View.GONE);
+        llHeaderImageContainer.setVisibility(type == 2 ? View.VISIBLE : View.GONE);
+    }
+
+    private void toggleFooterContainers(int type) {
+        if (llFooterTextContainer == null || llFooterImageContainer == null) return;
+        llFooterTextContainer.setVisibility(type == 1 ? View.VISIBLE : View.GONE);
+        llFooterImageContainer.setVisibility(type == 2 ? View.VISIBLE : View.GONE);
+    }
+
+    private void setupHeaderFooterListeners() {
+        spHeaderType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                prefs.edit().putInt("header_type", position).apply();
+                toggleHeaderContainers(position);
+                appendLog("[System] Header type changed to: " + (position == 0 ? "None" : (position == 1 ? "Text" : "Image")));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        etHeaderCustomText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                prefs.edit().putString("header_text", s.toString()).apply();
+            }
+        });
+
+        btnSelectHeaderImage.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            headerImageLauncher.launch(Intent.createChooser(intent, "Select Header Image"));
+        });
+
+        spFooterType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                prefs.edit().putInt("footer_type", position).apply();
+                toggleFooterContainers(position);
+                appendLog("[System] Footer type changed to: " + (position == 0 ? "None" : (position == 1 ? "Text" : "Image")));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        etFooterCustomText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                prefs.edit().putString("footer_text", s.toString()).apply();
+            }
+        });
+
+        btnSelectFooterImage.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            footerImageLauncher.launch(Intent.createChooser(intent, "Select Footer Image"));
+        });
+    }
+
+    private void handleImageSelected(android.net.Uri uri, boolean isHeader) {
+        try {
+            java.io.InputStream inputStream = getContentResolver().openInputStream(uri);
+            if (inputStream == null) return;
+            
+            // Create local file in app files directory
+            String fileName = isHeader ? "custom_header.png" : "custom_footer.png";
+            java.io.File destFile = new java.io.File(getFilesDir(), fileName);
+            
+            java.io.FileOutputStream outputStream = new java.io.FileOutputStream(destFile);
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            outputStream.close();
+            inputStream.close();
+            
+            // Save path in SharedPreferences
+            String pathKey = isHeader ? "header_image_path" : "footer_image_path";
+            prefs.edit().putString(pathKey, destFile.getAbsolutePath()).apply();
+            
+            // Update UI preview
+            updateImagePreview(isHeader, destFile.getAbsolutePath());
+            appendLog("[System] Selected custom " + (isHeader ? "header" : "footer") + " image.");
+            
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to load image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            appendLog("[System error] Failed to load image: " + e.getMessage());
+        }
+    }
+
+    private void updateImagePreview(boolean isHeader, String path) {
+        ImageView ivPreview = findViewById(isHeader ? R.id.ivHeaderPreview : R.id.ivFooterPreview);
+        if (ivPreview == null) return;
+        
+        if (path != null && !path.isEmpty()) {
+            java.io.File file = new java.io.File(path);
+            if (file.exists()) {
+                android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(path);
+                if (bitmap != null) {
+                    ivPreview.setImageBitmap(bitmap);
+                    ivPreview.setVisibility(View.VISIBLE);
+                    return;
+                }
+            }
+        }
+        ivPreview.setVisibility(View.GONE);
     }
 
     @Override
