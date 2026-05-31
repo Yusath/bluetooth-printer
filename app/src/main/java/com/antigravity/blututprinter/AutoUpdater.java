@@ -101,7 +101,14 @@ public class AutoUpdater {
                     JSONObject json = new JSONObject(response);
 
                     final String tagName = json.getString("tag_name");
-                    final String latestVersion = tagName.startsWith("v") ? tagName.substring(1) : tagName;
+                    String latestVersionTemp = tagName;
+                    if (latestVersionTemp.startsWith("v") || latestVersionTemp.startsWith("V")) {
+                        latestVersionTemp = latestVersionTemp.substring(1);
+                    }
+                    if (latestVersionTemp.startsWith(".")) {
+                        latestVersionTemp = latestVersionTemp.substring(1);
+                    }
+                    final String latestVersion = latestVersionTemp;
                     
                     JSONArray assets = json.getJSONArray("assets");
                     String apkDownloadUrlTemp = null;
@@ -174,6 +181,23 @@ public class AutoUpdater {
 
     private static boolean isNewerVersion(String currentStr, String latestStr) {
         if (currentStr == null || latestStr == null) return false;
+        
+        // Clean leading v, V, or dots from current version
+        if (currentStr.startsWith("v") || currentStr.startsWith("V")) {
+            currentStr = currentStr.substring(1);
+        }
+        if (currentStr.startsWith(".")) {
+            currentStr = currentStr.substring(1);
+        }
+
+        // Clean leading v, V, or dots from latest version
+        if (latestStr.startsWith("v") || latestStr.startsWith("V")) {
+            latestStr = latestStr.substring(1);
+        }
+        if (latestStr.startsWith(".")) {
+            latestStr = latestStr.substring(1);
+        }
+
         String[] currentParts = currentStr.split("\\.");
         String[] latestParts = latestStr.split("\\.");
         int length = Math.max(currentParts.length, latestParts.length);
