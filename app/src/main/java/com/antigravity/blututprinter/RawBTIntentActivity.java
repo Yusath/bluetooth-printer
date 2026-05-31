@@ -4,8 +4,18 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -15,19 +25,46 @@ public class RawBTIntentActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        Intent intent = getIntent();
+        final Intent intent = getIntent();
         if (intent == null) {
             finish();
             return;
         }
 
-        BluetoothPrinterManager printer = BluetoothPrinterManager.getInstance();
+        // 1. Inflate and show our gorgeous cybernetic dark theme dialog
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_print_status, null);
+        final CircularProgressIndicator progressIndicator = dialogView.findViewById(R.id.printProgressIndicator);
+        final TextView tvPrintMessage = dialogView.findViewById(R.id.tvPrintMessage);
+
+        final AlertDialog progressDialog = new MaterialAlertDialogBuilder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+
+        if (progressDialog.getWindow() != null) {
+            progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        progressDialog.show();
+
+        // 2. Check connection status of BluetoothPrinterManager
+        final BluetoothPrinterManager printer = BluetoothPrinterManager.getInstance();
         if (!printer.isConnected()) {
-            Toast.makeText(this, "Printer is not connected. Open the app to connect.", Toast.LENGTH_LONG).show();
-            finish();
+            tvPrintMessage.setText("Printer belum terhubung! ⚠️\nBuka aplikasi untuk koneksi.");
+            progressIndicator.setVisibility(View.GONE);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!isFinishing()) {
+                        progressDialog.dismiss();
+                        finish();
+                    }
+                }
+            }, 3000);
             return;
         }
 
+        // 3. Extract and parse raw byte printer payloads
         byte[] printData = null;
         String action = intent.getAction();
 
@@ -66,20 +103,75 @@ public class RawBTIntentActivity extends Activity {
                 }
             }
         } catch (Exception e) {
-            Toast.makeText(this, "Error reading intent print data: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            tvPrintMessage.setText("Data struk rusak! ❌");
+            progressIndicator.setVisibility(View.GONE);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!isFinishing()) {
+                        progressDialog.dismiss();
+                        finish();
+                    }
+                }
+            }, 2500);
+            return;
         }
 
-        if (printData != null && printData.length > 0) {
-            boolean success = printer.sendData(printData);
-            if (success) {
-                Toast.makeText(this, "Print job sent successfully", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Failed to send print job to printer", Toast.LENGTH_LONG).show();
+        // 4. Ensure we have data to print
+        if (printData == null || printData.length == 0) {
+            tvPrintMessage.setText("Tidak ada data struk! ❌");
+            progressIndicator.setVisibility(View.GONE);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (!isFinishing()) {
+                        progressDialog.dismiss();
+                        finish();
+                    }
+                }
+            }, 2500);
+            return;
+        }
+
+        // 5. Send data asynchronously to prevent Main UI Thread freeze
+        final byte[] finalPrintData = printData;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final boolean success = printer.sendData(finalPrintData);
+                
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (isFinishing()) return;
+
+                        progressIndicator.setVisibility(View.GONE);
+                        if (success) {
+                            tvPrintMessage.setText("Cetak struk sukses! 🖨️");
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (!isFinishing()) {
+                                        progressDialog.dismiss();
+                                        finish();
+                                    }
+                                }
+                            }, 1200);
+                        } else {
+                            tvPrintMessage.setText("Gagal mencetak struk! ❌");
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (!isFinishing()) {
+                                        progressDialog.dismiss();
+                                        finish();
+                                    }
+                                }
+                            }, 2500);
+                        }
+                    }
+                });
             }
-        } else {
-            Toast.makeText(this, "No printable data found in intent", Toast.LENGTH_SHORT).show();
-        }
-
-        finish();
+        }).start();
     }
 }

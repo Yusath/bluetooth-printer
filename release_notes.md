@@ -1,12 +1,36 @@
-# 🚀 Release Notes - v1.0.3
+# 🚀 Catatan Rilis - v1.0.4 (Terbaru)
 
-Selamat datang di rilis milestone **v1.0.3** dari **Blutut Printer (Web & TCP Print Bridge)**!
+Selamat datang di rilis milestone **v1.0.4** dari **Blutut Printer (Web & TCP Print Bridge)**!
 
-Rilis ini menghadirkan **Perombakan UI/UX Premium Modern** yang mengubah total antarmuka aplikasi dari gaya lama menjadi dasbor modern bertema gelap (*cybernetic dark-themed dashboard*). Selain itu, versi ini menyertakan fitur cetak **Watermark Cerdas BUMS STIT Riyadhussholihiin** rata tengah 2 baris, sistem popup dialog pembaruan berbasis Google Material 3 dengan progress bar kustom horizontal, perlindungan data pengaturan dari uninstal manual, serta label versi dinamis pada dasbor utama.
+Rilis ini berfokus pada integrasi sistem pembaruan yang cerdas, modern, aman dari kehilangan data, serta penambahan indikator visual versi aplikasi dinamis pada dasbor utama.
 
 ---
 
-## 🌟 Apa yang Baru di Rilis Ini
+## 🌟 Apa yang Baru di Rilis v1.0.4
+
+### 🔄 1. Popup Dialog Pembaruan Modern & Custom Progress Bar (Material 3)
+*   **Material 3 Dialogs**: Mengganti dialog sistem klasik yang kaku dengan **`MaterialAlertDialogBuilder`** yang memiliki sudut melengkung estetik dan tipografi modern Google Material 3 yang menyatu dengan tema gelap dasbor.
+*   **LinearProgressIndicator Kustom**: Menghapus `ProgressDialog` jadul (deprecated) dan menggantinya dengan dialog kustom yang memuat `dialog_download_progress.xml`. Saat proses download berlangsung, progress bar horizontal berwarna Sky Blue (`accent_blue`) akan meluncur mulus secara real-time, lengkap dengan teks persentase dinamis (misal: "85%") dan statistik ukuran unduhan (misal: "Downloading: 104 KB / 134 KB").
+*   **Auto-Redirect Instan**: Tepat ketika unduhan selesai, dialog kustom langsung tertutup otomatis dan langsung mengarahkan Anda ke layar instalasi bawaan Android tanpa ada klik jeda di dalam aplikasi.
+
+### 🛡️ 2. Pengaturan Perlindungan Data dari Reset / Uninstal (Safety Net)
+*   **Fragile User Data Protection**: Menyematkan parameter `android:hasFragileUserData="true"` di dalam berkas manifest.
+*   **Tahan Banting**: Mulai Android 10+, jika Anda terpaksa menghapus instalan manual aplikasi lama (misalnya saat beralih dari versi debug kompilasi lokal ke versi release cloud), Android secara cerdas akan menawarkan kotak centang **"Keep app data? (Simpan data aplikasi?)"**. Cukup centang kotak tersebut, maka seluruh pengaturan Bluetooth printer dan port server Anda akan tetap aman dan langsung pulih otomatis saat APK versi baru dipasang!
+
+### 📱 3. Label Versi Dinamis Dasbor Utama
+*   **Dynamic Version Header**: Menambahkan label penunjuk versi aplikasi (`tvAppVersion`) tepat di bawah sub-keterangan dasbor utama. Informasi versi diambil secara dinamis dari `versionName` di Gradle sistem, sehingga akan terperbarui otomatis di rilis mendatang tanpa edit XML manual.
+
+---
+
+# 🚀 Catatan Rilis - v1.0.3 (Milestone UI & Watermark)
+
+Selamat datang di rilis milestone **v1.0.3** dari **Blutut Printer (Web & TCP Print Bridge)**!
+
+Rilis ini menghadirkan **Perombakan UI/UX Premium Modern** yang mengubah total antarmuka aplikasi dari gaya lama menjadi dasbor modern bertema gelap (*cybernetic dark-themed dashboard*). Selain itu, versi ini menyertakan fitur cetak **Watermark Cerdas BUMS STIT Riyadhussholihiin** rata tengah 2 baris.
+
+---
+
+## 🌟 Apa yang Baru di Rilis v1.0.3
 
 ### 📱 1. Perombakan UI/UX Premium & Modern (Menghilangkan Kesan Aplikasi Tua)
 *   **Floating Navigation Dock (Bilah Menu Melayang)**: Navigasi bawah kini didesain melayang berupa kapsul rounded modern (`bg_nav_dock`) berjarak dari tepi layar dengan sudut melengkung sempurna (`32dp`) dan border neon sky-blue tipis.
@@ -16,7 +40,6 @@ Rilis ini menghadirkan **Perombakan UI/UX Premium Modern** yang mengubah total a
     *   *Aktif/Berjalan (Running/Connected)*: Latar belakang gradasi Emerald-Teal dengan teks putih kontras tinggi yang bersinar (*glowing*).
     *   *Mati/Terputus (Stopped/Disconnected)*: Latar belakang Slate gelap dengan outline warna Rose/Muted Red yang elegan.
 *   **Custom Dropdown Spinner**: Spinner Printer, Ukuran Kertas, dan Jeda Baris dirombak menggunakan layout kustom (`custom_spinner_item` & `custom_spinner_dropdown_item`) dengan font modern `sans-serif-medium` dan ikon penunjuk chevron minimalis, menghilangkan total drop-down sistem bawaan Android yang terlihat tua.
-*   **Label Versi Dinamis (Baru!)**: Menambahkan label penunjuk versi aplikasi (`tvAppVersion`) tepat di bawah sub-keterangan dasbor utama. Informasi versi diambil secara dinamis dari `versionName` di Gradle sistem, sehingga akan terperbarui otomatis di rilis mendatang tanpa edit XML manual.
 *   **Tata Letak Ergonomis**: Tombol pengujian printer "Test Text" (Test Text) dan "Test Image" (Test Gambar) kini diposisikan bersebelahan menyamping (*horizontal row*) secara presisi untuk menghemat ruang layar dan mempermudah akses.
 *   **Monospace Console Log**: Panel log didesain ulang dengan sudut melengkung dan warna teks hijau neon `#00FFCC` yang bercahaya tajam.
 
@@ -28,15 +51,6 @@ Badan Usaha Milik STIT Riyadhussholihiin
 ```
 *   **Font B Compact Sizing**: Watermark dicetak dalam **Font B** (`ESC M 1`), yaitu ukuran font rapat 9x17 dot yang sangat pas untuk menampung teks panjang 39 karakter pada kertas 58mm tanpa terpotong atau terlipat barisnya (*no auto-wrapping*), namun tetap terbaca dengan sangat tajam dan jelas.
 *   **Smart Stream Injector**: Algoritma cerdas yang memindai 15 byte terakhir stream cetakan untuk mendeteksi perintah pemotongan kertas otomatis (`GS V`) atau penggulungan kertas (`ESC d`). Watermark akan **disuntikkan tepat sebelum perintah potong/gulung** agar tercetak sempurna di posisi paling bawah struk sebelum kertas robek/terpotong, baik dicetak via HTTP POST, TCP raw, maupun PDF System Print Service.
-
-### 🔄 3. Popup Dialog Pembaruan Modern & Custom Progress Bar (Baru!)
-*   **Material 3 Dialogs**: Mengganti `AlertDialog.Builder` dengan **`MaterialAlertDialogBuilder`** yang memiliki sudut melengkung estetik dan tipografi modern Material 3 yang menyatu dengan tema gelap dasbor.
-*   **Sleek LinearProgressIndicator**: Menghapus `ProgressDialog` jadul (deprecated) dan menggantinya dengan dialog kustom yang memuat `dialog_download_progress.xml`. Saat proses download berlangsung, progress bar horizontal berwarna Sky Blue (`accent_blue`) akan meluncur mulus secara real-time, lengkap dengan teks persentase dinamis (misal: "85%") dan statistik ukuran unduhan (misal: "Downloading: 104 KB / 134 KB").
-*   **Auto-Redirect Instan**: Tepat ketika unduhan selesai, dialog kustom langsung tertutup otomatis dan langsung mengarahkan Anda ke layar instalasi bawaan Android tanpa ada klik jeda di dalam aplikasi.
-
-### 🛡️ 4. Pengaturan Perlindungan Data dari Reset / Uninstal (Baru!)
-*   **Fragile User Data Protection**: Menyematkan parameter `android:hasFragileUserData="true"` di dalam berkas manifest.
-*   **Tahan Banting**: Mulai Android 10+, jika Anda terpaksa menghapus instalan manual aplikasi lama (misalnya saat beralih dari versi debug kompilasi lokal ke versi release cloud), Android secara cerdas akan menawarkan kotak centang **"Keep app data? (Simpan data aplikasi?)"**. Cukup centang kotak tersebut, maka seluruh pengaturan Bluetooth printer dan port server Anda akan tetap aman dan langsung pulih otomatis saat APK versi baru dipasang!
 
 ---
 
