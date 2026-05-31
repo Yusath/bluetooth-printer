@@ -1,4 +1,31 @@
-# 🚀 Catatan Rilis - v1.0.4 (Terbaru)
+# 🚀 Catatan Rilis - v1.0.5 (Terbaru)
+
+Selamat datang di rilis milestone **v1.0.5** dari **Blutut Printer (Web & TCP Print Bridge)**!
+
+Rilis ini berfokus pada peningkatan kenyamanan cetak latar belakang (print intent) dengan menghadirkan dialog status cetak real-time yang modern, interaktif, serta eksekusi cetak asinkron multi-threaded untuk performa cetak yang mulus tanpa hambatan.
+
+---
+
+## 🌟 Apa yang Baru di Rilis v1.0.5
+
+### 📱 1. Dialog Status Cetak Real-Time & Interaktif (Material 3)
+*   **Visual Status Modern**: Mengganti notifikasi Toast bawaan Android yang pasif dan kaku dengan dialog interaktif kustom berbasis **Material 3** (`MaterialAlertDialogBuilder`) bertema gelap (*cybernetic dark theme*) yang menyatu dengan estetika dasbor utama.
+*   **CircularProgressIndicator Indah**: Menambahkan progress loading melingkar berwarna Sky Blue (`accent_blue`) yang berputar secara dinamis di atas latar belakang Slate (`bg_slate_card`) transparan yang elegan.
+*   **Pesan Status Cerdas & Real-time**: Menampilkan umpan balik visual secara langsung bergantung pada kondisi cetak:
+    *   **Proses Mengirim**: `"Mengirim ke printer..."` dengan roda berputar.
+    *   **Sukses Cetak**: `"Cetak struk sukses! 🖨️"` dengan penutupan otomatis instan (delay 1.2 detik).
+    *   **Printer Terputus**: `"Printer belum terhubung! ⚠️\nBuka aplikasi untuk koneksi."` (delay 3 detik).
+    *   **Data Rusak / Tidak Ada**: `"Data struk rusak! ❌"` atau `"Tidak ada data struk! ❌"` (delay 2.5 detik).
+    *   **Gagal Cetak**: `"Gagal mencetak struk! ❌"` (delay 2.5 detik).
+
+### ⚡ 2. Eksekusi Asinkron Multi-Thread (Anti-Freeze & Anti-ANR)
+*   **Asynchronous Background Thread**: Seluruh proses pengiriman data cetak (payload bytes) ke Bluetooth Printer Manager kini dijalankan di luar Main Thread (UI Thread) menggunakan Thread terpisah (`new Thread()`).
+*   **Bebas Lag & ANR**: Menghilangkan total potensi hang atau munculnya dialog "Application Not Responding" (ANR) saat mengirim data gambar dithered berukuran besar atau data struk yang panjang.
+*   **Transisi Thread Aman**: Memanfaatkan `runOnUiThread` dan penangan handler Looper utama untuk memanipulasi dialog secara aman dan responsif langsung dari thread latar belakang setelah proses cetak selesai.
+
+---
+
+# 🚀 Catatan Rilis - v1.0.4
 
 Selamat datang di rilis milestone **v1.0.4** dari **Blutut Printer (Web & TCP Print Bridge)**!
 

@@ -1,6 +1,5 @@
 package com.antigravity.blututprinter;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
@@ -20,7 +20,7 @@ import com.google.android.material.progressindicator.CircularProgressIndicator;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
-public class RawBTIntentActivity extends Activity {
+public class RawBTIntentActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

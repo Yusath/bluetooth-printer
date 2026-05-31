@@ -48,7 +48,7 @@
         <activity
             android:name=".RawBTIntentActivity"
             android:exported="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            android:theme="@style/Theme.BlututPrinter.Translucent">
             <intent-filter>
                 <action android:name="com.rawbt.print.ACTION_PRINT" />
                 <category android:name="android.intent.category.DEFAULT" />
