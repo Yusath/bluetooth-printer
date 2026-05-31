@@ -205,8 +205,9 @@ public class MainActivity extends AppCompatActivity {
         int savedContrast = prefs.getInt("print_contrast", 128); // 80 - 180 threshold
         sbContrast.setProgress(savedContrast - 80);
 
-        // Default Server UI to stopped; service will broadcast its actual running state on start
-        updateServerUI(false, port);
+        // Initialize Server UI based on actual running state of the service
+        boolean serverActive = PrintServerService.isActive();
+        updateServerUI(serverActive, port);
 
         // Check & request Bluetooth permissions
         if (checkBtPermissions()) {
@@ -904,6 +905,12 @@ public class MainActivity extends AppCompatActivity {
             tvPrinterStatus.setText("Disconnected");
             tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_disconnected);
         }
+
+        // Keep server status UI in sync if the service state changed while backgrounded
+        boolean serverActive = PrintServerService.isActive();
+        int port = prefs.getInt("server_port", 6801);
+        updateServerUI(serverActive, port);
+
         checkPendingJobs();
     }
 

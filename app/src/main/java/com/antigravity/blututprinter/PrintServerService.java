@@ -43,10 +43,17 @@ public class PrintServerService extends Service {
     private ExecutorService serverExecutor;
     private BluetoothPrinterManager printerManager;
 
+    private static volatile boolean active = false;
+
+    public static boolean isActive() {
+        return active;
+    }
+
     private void logEvent(String message) {
         Log.d(TAG, message);
         Intent intent = new Intent(ACTION_LOG_EVENT);
         intent.putExtra(EXTRA_LOG, message);
+        intent.setPackage(getPackageName());
         sendBroadcast(intent);
     }
 
@@ -57,16 +64,35 @@ public class PrintServerService extends Service {
         serverExecutor = Executors.newCachedThreadPool();
     }
 
+    private boolean hasBluetoothConnectPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            return androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        }
+        return true;
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         SharedPreferences prefs = getSharedPreferences("BlututPrinterPrefs", MODE_PRIVATE);
         port = prefs.getInt("server_port", 6801);
 
         createNotificationChannel();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(NOTIFICATION_ID, buildNotification("Starting printer bridge..."), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
-        } else {
-            startForeground(NOTIFICATION_ID, buildNotification("Starting printer bridge..."));
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !hasBluetoothConnectPermission()) {
+                    // Fallback to regular notification if bluetooth connect permission is missing to avoid security exception
+                    startForeground(NOTIFICATION_ID, buildNotification("Starting printer bridge (waiting for Bluetooth permission)..."));
+                } else {
+                    startForeground(NOTIFICATION_ID, buildNotification("Starting printer bridge..."), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+                }
+            } else {
+                startForeground(NOTIFICATION_ID, buildNotification("Starting printer bridge..."));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to start foreground service: " + e.getMessage());
+            try {
+                startForeground(NOTIFICATION_ID, buildNotification("Starting printer bridge..."));
+            } catch (Exception ignored) {}
         }
 
         startServer();
@@ -92,8 +118,13 @@ public class PrintServerService extends Service {
     }
 
     private void startServer() {
-        if (isRunning) return;
+        if (isRunning) {
+            active = true;
+            broadcastStatus(true, port);
+            return;
+        }
         isRunning = true;
+        active = true;
 
         serverExecutor.execute(new Runnable() {
             @Override
@@ -123,6 +154,7 @@ public class PrintServerService extends Service {
 
     private void stopServer() {
         isRunning = false;
+        active = false;
         try {
             if (serverSocket != null) {
                 serverSocket.close();
@@ -340,6 +372,7 @@ public class PrintServerService extends Service {
         Intent intent = new Intent(ACTION_STATUS_CHANGE);
         intent.putExtra(EXTRA_STATUS, running);
         intent.putExtra(EXTRA_PORT, port);
+        intent.setPackage(getPackageName());
         sendBroadcast(intent);
     }
 
