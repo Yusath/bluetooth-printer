@@ -1,19 +1,67 @@
-# 🖨️ Blutut Printer - Web & TCP Print Bridge
-### *Badan Usaha Milik STIT Riyadhussholihiin (BUMS)*
+# Blutut Printer - Ultra-Lightweight Android Print Bridge (v1.0.3)
 
-A native Android print bridge application that seamlessly connects Bluetooth classic (SPP) thermal receipt printers with web browsers (via HTTP/CORS), raw TCP sockets, and the Android System Print Service (PDF). 
-
-Designed with an ultra-lightweight footprint (**&lt; 150 KB**), a premium cybernetic dark theme, and robust data protection safety nets.
+An extremely lightweight native Android print bridge. It acts as a robust, native alternative to apps like RawBT, allowing direct printing to Bluetooth classic (SPP) thermal receipt printers from **web browsers (via HTTP/CORS)**, **direct TCP sockets**, or **Android print intents**.
 
 ---
 
-## 🌟 Key Features
+## 🌟 What's New in v1.0.3
 
-*   **Premium Floating UI**: Features a sleek floating navigation capsule with dynamic active tab indicators and gradient status badges.
-*   **Smart BUMS Watermark**: Automatically injects a two-line centered footnote watermark (`BUMS` and `Badan Usaha Milik STIT Riyadhussholihiin`) in small, crisp **Font B** (`ESC M 1`) precisely before any paper cuts or feed commands at the end of receipts to ensure it is never cut off.
-*   **Dual-Protocol Bridge**: Operates a background HTTP server (with full CORS support) and raw TCP sockets on a customs port to process  printing transactions directly from web browsers or local POS clients.
-*   **Data Retention Safeguard**: Utilizes `hasFragileUserData` uninstall protection so your default Bluetooth printer address and server configurations are preserved when updating the app.
-*   **Buffer Throttling**: Implements active data stream throttling to prevent buffer overflows and garbled printouts on budget thermal printer models.
+### 📱 1. Premium Cybernetic UI/UX Revamp
+*   **Floating Navigation Capsule Dock**: Replaced the traditional flat bottom navigation bar with a floating capsule dock featuring smooth margins, rounded corners, and a double-stroke neon-glowing border.
+*   **Active Tab Capsule Indicators**: Added neat, interactive 2.5dp Sky Blue neon indicators underneath the active tab icon to give a premium, tactile, and highly responsive feedback.
+*   **Dynamic Status Pill Badges**: Replaced static key-value labels with visually striking status pills that dynamically shift backgrounds:
+    *   **Active/Running**: Radiant Emerald-to-Teal gradient with glowing white text.
+    *   **Stopped/Disconnected**: Elegant Slate background with thin Rose/Crimson outlines.
+*   **Sleek Custom Spinners**: Created fully customized spinner layouts (`custom_spinner_item` and `custom_spinner_dropdown_item`) featuring modern typography (`sans-serif-medium`) and minimalist chevron vector drawables, completely removing legacy Android system spinner graphics.
+*   **Space-Efficient Layouts**: Configured horizontal side-by-side rows for testing buttons to conserve vertical space and maximize ergonomics.
+*   **Glowing Monospace Console**: High-contrast console terminal log styled with rounded bounds and a radiant `#00FFCC` neon-green text theme.
+
+### 🖨️ 2. Smart BUMS Footnote Watermark
+Appends a beautiful two-line footer watermark centered at the bottom of all successful receipts:
+```text
+                  BUMS
+Badan Usaha Milik STIT Riyadhussholihiin
+```
+*   **Font B Compact Sizing**: Printed in crisp **Font B** (`ESC M 1`), which fits perfectly on standard 58mm budget printers without wrapping, while remaining highly readable.
+*   **Smart Stream Injector**: Scans the last 15 bytes of incoming ESC/POS streams for paper cuts (`GS V` / `0x1D 0x56`) or feed commands (`ESC d` / `0x1B 0x64`) and injects the watermark precisely *before* them. This ensures it is printed cleanly at the bottom of the invoice before the paper is cut or fed, preventing cut-offs or printing on the next receipt. Works universally for HTTP POST, raw TCP, and PDF System Print Services.
+
+---
+
+## Key Features
+
+1. **Ultra-Tiny Footprint**: Compiled using native Java and optimized resource shrinking, resulting in a final install file size under **150KB** (easily beating constraints).
+2. **Dual-Protocol Background Server**:
+   - **HTTP Server (Port 6801)**: Fully compatible with Web Browser `fetch` calls, with **CORS headers enabled**.
+   - **TCP Raw Server (Port 6801)**: Accepts raw TCP print bytes from standard network printer client apps (like Loyverse, Kyte, etc.).
+3. **RawBT Compatibility**: Supports standard printing intents (`com.rawbt.print.ACTION_PRINT` and standard sharing intents).
+4. **Boot Auto-Start**: Can automatically launch the print server service as soon as the phone boots up.
+5. **Dynamic Paper Sizes**: Configurable dimensions between 58mm (384px) and 80mm (576px) receipts.
+6. **Buffer Throttling**: Splits large dithered images into 512-byte blocks with a tiny 80ms sleep to prevent overflow crashes on budget thermal printers.
+
+---
+
+## 🚀 How to Build the APK (Without Installing Android SDK)
+
+Since you don't have the Android SDK installed on your machine, we have built a **GitHub Actions Cloud Compiler** directly into the project. You can build the ready-to-install APK in the cloud for free in under 2 minutes:
+
+1. **Create a GitHub Repository**:
+   - Go to [github.com](https://github.com) and create a new **free repository** (it can be Public or Private).
+2. **Push the Code to GitHub**:
+   - Open the terminal in this project folder (`d:\Antigapps\blutut-printer`) and run:
+     ```bash
+     git init
+     git add .
+     git commit -m "Initial commit for Blutut Printer Bridge v1.0.3"
+     git branch -M main
+     git remote add origin <YOUR_GITHUB_REPOSITORY_URL>
+     git push -u origin main
+     ```
+3. **Download the APK**:
+   - Go to your repository page on GitHub and click the **Actions** tab at the top.
+   - You will see the **Build Android APK** workflow running. Click on it.
+   - Once it finishes (about 1.5 minutes), click on the completed run and scroll to the bottom to the **Artifacts** section.
+   - Click on **blutut-printer-debug-apk** to download the ZIP file.
+   - Unzip the file, transfer the `app-debug.apk` to your phone, and install it! (If prompted, enable "Install from Unknown Sources" since it is your own custom developer build).
 
 ---
 
