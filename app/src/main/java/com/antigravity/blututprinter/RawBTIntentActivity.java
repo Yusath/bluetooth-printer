@@ -6,21 +6,24 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Base64;
-import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 public class RawBTIntentActivity extends AppCompatActivity {
+    
+    private CircularProgressIndicator progressIndicator;
+    private TextView tvPrintMessage;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,39 +34,69 @@ public class RawBTIntentActivity extends AppCompatActivity {
             return;
         }
 
-        // 1. Inflate and show our gorgeous cybernetic dark theme dialog
-        LayoutInflater inflater = getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.dialog_print_status, null);
-        final CircularProgressIndicator progressIndicator = dialogView.findViewById(R.id.printProgressIndicator);
-        final TextView tvPrintMessage = dialogView.findViewById(R.id.tvPrintMessage);
-
-        final AlertDialog progressDialog = new MaterialAlertDialogBuilder(this)
-                .setView(dialogView)
-                .setCancelable(false)
-                .create();
-
-        if (progressDialog.getWindow() != null) {
-            progressDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        // 1. Set dialog layout directly as our activity content view
+        setContentView(R.layout.dialog_print_status);
+        
+        // Make the translucent activity window look and behave like a centered floating dialog
+        if (getWindow() != null) {
+            getWindow().setLayout(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            getWindow().setGravity(Gravity.CENTER);
         }
-        progressDialog.show();
+
+        progressIndicator = findViewById(R.id.printProgressIndicator);
+        tvPrintMessage = findViewById(R.id.tvPrintMessage);
 
         // 2. Check connection status of BluetoothPrinterManager
         final BluetoothPrinterManager printer = BluetoothPrinterManager.getInstance();
         if (!printer.isConnected()) {
-            tvPrintMessage.setText("Printer belum terhubung! ⚠️\nBuka aplikasi untuk koneksi.");
-            progressIndicator.setVisibility(View.GONE);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            // Attempt to auto-connect to default saved printer
+            tvPrintMessage.setText("Menghubungkan ke printer...");
+            progressIndicator.setVisibility(View.VISIBLE);
+            
+            printer.connectToDefault(this, new BluetoothPrinterManager.ConnectionCallback() {
                 @Override
-                public void run() {
-                    if (!isFinishing()) {
-                        progressDialog.dismiss();
-                        finish();
-                    }
+                public void onSuccess() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (isFinishing()) return;
+                            tvPrintMessage.setText("Mengirim data cetak...");
+                            processPrintIntent(intent, printer);
+                        }
+                    });
                 }
-            }, 3000);
+
+                @Override
+                public void onFailure(final String message) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (isFinishing()) return;
+                            tvPrintMessage.setText("Gagal terhubung ke printer! ⚠️\n" + message);
+                            progressIndicator.setVisibility(View.GONE);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (!isFinishing()) {
+                                        finish();
+                                    }
+                                }
+                            }, 3000);
+                        }
+                    });
+                }
+            });
             return;
         }
 
+        // Already connected, process immediately
+        processPrintIntent(intent, printer);
+    }
+    
+    private void processPrintIntent(final Intent intent, final BluetoothPrinterManager printer) {
         // 3. Extract and parse raw byte printer payloads
         byte[] printData = null;
         String action = intent.getAction();
@@ -109,7 +142,6 @@ public class RawBTIntentActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     if (!isFinishing()) {
-                        progressDialog.dismiss();
                         finish();
                     }
                 }
@@ -125,7 +157,6 @@ public class RawBTIntentActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     if (!isFinishing()) {
-                        progressDialog.dismiss();
                         finish();
                     }
                 }
@@ -138,7 +169,9 @@ public class RawBTIntentActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final boolean success = printer.sendData(finalPrintData);
+                // Apply the beautiful BUMS watermark!
+                byte[] watermarkedData = EscPosDriver.appendWatermark(finalPrintData);
+                final boolean success = printer.sendData(watermarkedData);
                 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -152,7 +185,6 @@ public class RawBTIntentActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     if (!isFinishing()) {
-                                        progressDialog.dismiss();
                                         finish();
                                     }
                                 }
@@ -163,7 +195,6 @@ public class RawBTIntentActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     if (!isFinishing()) {
-                                        progressDialog.dismiss();
                                         finish();
                                     }
                                 }
@@ -175,3 +206,4 @@ public class RawBTIntentActivity extends AppCompatActivity {
         }).start();
     }
 }
+
