@@ -3,6 +3,10 @@ package com.antigravity.blututprinter;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.graphics.pdf.PdfRenderer;
+import android.os.ParcelFileDescriptor;
+import java.io.File;
+import java.io.IOException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -70,6 +74,11 @@ public class MainActivity extends AppCompatActivity {
 
     // Bluetooth Warning Banner
     private LinearLayout llBluetoothWarning;
+    
+    // Pending Jobs Warning Banner
+    private LinearLayout llPendingJobsWarning;
+    private TextView tvPendingJobsDesc;
+    private Button btnForcePrintPending;
 
     // Advanced Settings
     private SwitchMaterial swAutoUpdate;
@@ -215,6 +224,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize Tab
         switchTab(0);
+
+        // Handle SETUP_PRINTER_FOR_PRINT launch intent
+        if (getIntent() != null && "SETUP_PRINTER_FOR_PRINT".equals(getIntent().getStringExtra("action"))) {
+            switchTab(0);
+        }
     }
 
     private void initUI() {
@@ -242,6 +256,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Warning Banner
         llBluetoothWarning = findViewById(R.id.llBluetoothWarning);
+
+        // Pending Jobs Banner
+        llPendingJobsWarning = findViewById(R.id.llPendingJobsWarning);
+        tvPendingJobsDesc = findViewById(R.id.tvPendingJobsDesc);
+        btnForcePrintPending = findViewById(R.id.btnForcePrintPending);
 
         // Advanced Settings
         swAutoUpdate = findViewById(R.id.swAutoUpdate);
@@ -408,6 +427,9 @@ public class MainActivity extends AppCompatActivity {
                 appendLog("[System] Floyd-Steinberg Contrast threshold updated to: " + threshold);
             }
         });
+
+        // Force Print Pending Button Click
+        btnForcePrintPending.setOnClickListener(v -> printPendingJobsDirectly());
 
         // Scan/Connect Printer Button
         btnConnect.setOnClickListener(v -> {
@@ -600,6 +622,7 @@ public class MainActivity extends AppCompatActivity {
                 tvPrinterStatus.setText("Connected to " + name);
                 tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_connected);
                 appendLog("[System] Connected successfully to " + name);
+                onPrinterConnectedSuccessfully();
             }
 
             @Override
@@ -632,6 +655,7 @@ public class MainActivity extends AppCompatActivity {
                     appendLog("[System] Connected to " + device.getAddress());
                 }
                 Toast.makeText(MainActivity.this, "Printer connected!", Toast.LENGTH_SHORT).show();
+                onPrinterConnectedSuccessfully();
             }
 
             @Override
@@ -875,6 +899,142 @@ public class MainActivity extends AppCompatActivity {
             tvPrinterStatus.setText("Disconnected");
             tvPrinterStatus.setBackgroundResource(R.drawable.bg_status_disconnected);
         }
+        checkPendingJobs();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        if (intent != null && "SETUP_PRINTER_FOR_PRINT".equals(intent.getStringExtra("action"))) {
+            switchTab(0);
+        }
+    }
+
+    private void onPrinterConnectedSuccessfully() {
+        Intent intent = new Intent("com.antigravity.blututprinter.ACTION_PRINTER_CONNECTED");
+        intent.setPackage(getPackageName());
+        sendBroadcast(intent);
+
+        checkPendingJobs();
+
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (printerManager.isConnected()) {
+                    printPendingJobsDirectly();
+                }
+            }
+        }, 1500);
+    }
+
+    private void completeActivePrintJobInService(String jobId) {
+        Intent intent = new Intent("com.antigravity.blututprinter.ACTION_COMPLETE_PRINT_JOB");
+        intent.setPackage(getPackageName());
+        intent.putExtra("job_id", jobId);
+        sendBroadcast(intent);
+    }
+
+    private void checkPendingJobs() {
+        if (llPendingJobsWarning == null) return;
+        List<PendingJobManager.PendingJob> jobs = PendingJobManager.getPendingJobs(this);
+        if (jobs.isEmpty()) {
+            llPendingJobsWarning.setVisibility(View.GONE);
+        } else {
+            llPendingJobsWarning.setVisibility(View.VISIBLE);
+            tvPendingJobsDesc.setText(jobs.size() + " dokumen dalam antrian. Hubungkan printer.");
+            if (printerManager.isConnected()) {
+                btnForcePrintPending.setVisibility(View.VISIBLE);
+            } else {
+                btnForcePrintPending.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void printPendingJobsDirectly() {
+        if (!printerManager.isConnected()) return;
+        final List<PendingJobManager.PendingJob> jobs = PendingJobManager.getPendingJobs(this);
+        if (jobs.isEmpty()) return;
+
+        appendLog("[System] Auto-printing " + jobs.size() + " pending jobs...");
+        runOnUiThread(() -> {
+            if (btnForcePrintPending != null) btnForcePrintPending.setEnabled(false);
+        });
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int targetWidth = prefs.getInt("paper_width", 384);
+                int contrastThreshold = prefs.getInt("print_contrast", 128);
+                int feedLines = prefs.getInt("extra_feed", 3);
+                boolean isThrottled = prefs.getBoolean("buffer_throttle", false);
+                printerManager.setThrottled(isThrottled);
+
+                for (PendingJobManager.PendingJob job : jobs) {
+                    File file = new File(job.filePath);
+                    if (!file.exists()) {
+                        PendingJobManager.removePendingJob(MainActivity.this, job.id);
+                        continue;
+                    }
+
+                    ParcelFileDescriptor pfd = null;
+                    PdfRenderer renderer = null;
+                    try {
+                        pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+                        renderer = new PdfRenderer(pfd);
+                        int pageCount = renderer.getPageCount();
+
+                        for (int i = 0; i < pageCount; i++) {
+                            PdfRenderer.Page page = renderer.openPage(i);
+                            double scale = (double) targetWidth / page.getWidth();
+                            int targetHeight = (int) (page.getHeight() * scale);
+
+                            Bitmap bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
+                            bitmap.eraseColor(Color.WHITE);
+                            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
+                            page.close();
+
+                            byte[] escPosData = EscPosDriver.bitmapToEscPos(bitmap, targetWidth, contrastThreshold, feedLines);
+                            byte[] finalData = EscPosDriver.appendWatermark(escPosData);
+
+                            boolean ok = printerManager.sendData(finalData);
+                            if (!ok) {
+                                throw new IOException("Failed to send data to bluetooth printer.");
+                            }
+                            bitmap.recycle();
+                        }
+
+                        PendingJobManager.removePendingJob(MainActivity.this, job.id);
+                        completeActivePrintJobInService(job.id);
+
+                        final String title = job.title;
+                        runOnUiThread(() -> appendLog("[System] Printed pending job: " + title));
+
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error printing pending job " + job.id, e);
+                        final String errMsg = e.getMessage();
+                        runOnUiThread(() -> appendLog("[System error] Failed to print " + job.title + ": " + errMsg));
+                        break; 
+                    } finally {
+                        if (renderer != null) {
+                            try {
+                                renderer.close();
+                            } catch (Exception ignored) {}
+                        }
+                        if (pfd != null) {
+                            try {
+                                pfd.close();
+                            } catch (Exception ignored) {}
+                        }
+                    }
+                }
+
+                runOnUiThread(() -> {
+                    if (btnForcePrintPending != null) btnForcePrintPending.setEnabled(true);
+                    checkPendingJobs();
+                });
+            }
+        }).start();
     }
 
     @Override

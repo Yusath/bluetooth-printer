@@ -1,7 +1,12 @@
 package com.antigravity.blututprinter;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.pdf.PdfRenderer;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.ParcelFileDescriptor;
@@ -29,17 +34,159 @@ public class VirtualPrinterService extends PrintService {
     private HandlerThread backgroundThread;
     private Handler backgroundHandler;
 
+    private final BroadcastReceiver printerConnectionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("com.antigravity.blututprinter.ACTION_PRINTER_CONNECTED".equals(intent.getAction())) {
+                Log.d(TAG, "Printer connected broadcast received. Processing active blocked jobs...");
+                processActiveBlockedJobs();
+            } else if ("com.antigravity.blututprinter.ACTION_COMPLETE_PRINT_JOB".equals(intent.getAction())) {
+                String jobId = intent.getStringExtra("job_id");
+                if (jobId != null) {
+                    completeJobById(jobId);
+                }
+            }
+        }
+    };
+
+    private void completeJobById(String jobId) {
+        List<PrintJob> activeJobs = getActivePrintJobs();
+        if (activeJobs != null) {
+            for (PrintJob activeJob : activeJobs) {
+                if (activeJob.getId().toString().equals(jobId)) {
+                    if (activeJob.isStarted() || activeJob.isBlocked()) {
+                        activeJob.complete();
+                        Log.d(TAG, "Completed print job from broadcast: " + jobId);
+                    }
+                }
+            }
+        }
+    }
+
+    private void processActiveBlockedJobs() {
+        final BluetoothPrinterManager printer = BluetoothPrinterManager.getInstance();
+        if (!printer.isConnected()) {
+            Log.d(TAG, "Cannot process blocked jobs: Printer not connected.");
+            return;
+        }
+
+        List<PrintJob> activeJobs = getActivePrintJobs();
+        if (activeJobs == null || activeJobs.isEmpty()) {
+            Log.d(TAG, "No active print jobs to process.");
+            return;
+        }
+
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                android.content.SharedPreferences prefs = getSharedPreferences("BlututPrinterPrefs", MODE_PRIVATE);
+                int targetWidth = prefs.getInt("paper_width", 384);
+                int contrastThreshold = prefs.getInt("print_contrast", 128);
+                int feedLines = prefs.getInt("extra_feed", 3);
+                boolean isThrottled = prefs.getBoolean("buffer_throttle", false);
+                printer.setThrottled(isThrottled);
+
+                List<PendingJobManager.PendingJob> pendingList = PendingJobManager.getPendingJobs(VirtualPrinterService.this);
+
+                for (PrintJob activeJob : activeJobs) {
+                    if (activeJob.isBlocked()) {
+                        String jobId = activeJob.getId().toString();
+                        PendingJobManager.PendingJob matchedJob = null;
+                        for (PendingJobManager.PendingJob pj : pendingList) {
+                            if (pj.id.equals(jobId)) {
+                                matchedJob = pj;
+                                break;
+                            }
+                        }
+
+                        if (matchedJob != null) {
+                            File file = new File(matchedJob.filePath);
+                            if (file.exists()) {
+                                Log.d(TAG, "Processing blocked print job: " + jobId + " -> " + file.getAbsolutePath());
+                                activeJob.start();
+
+                                ParcelFileDescriptor pfd = null;
+                                PdfRenderer renderer = null;
+                                try {
+                                    pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+                                    renderer = new PdfRenderer(pfd);
+                                    int pageCount = renderer.getPageCount();
+
+                                    for (int i = 0; i < pageCount; i++) {
+                                        PdfRenderer.Page page = renderer.openPage(i);
+                                        double scale = (double) targetWidth / page.getWidth();
+                                        int targetHeight = (int) (page.getHeight() * scale);
+
+                                        Bitmap bitmap = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888);
+                                        bitmap.eraseColor(android.graphics.Color.WHITE);
+                                        page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
+                                        page.close();
+
+                                        byte[] escPosData = EscPosDriver.bitmapToEscPos(bitmap, targetWidth, contrastThreshold, feedLines);
+                                        byte[] finalData = EscPosDriver.appendWatermark(escPosData);
+
+                                        boolean ok = printer.sendData(finalData);
+                                        if (!ok) {
+                                            throw new IOException("Failed to send data to bluetooth printer.");
+                                        }
+                                        bitmap.recycle();
+                                    }
+
+                                    activeJob.complete();
+                                    Log.d(TAG, "Blocked print job completed successfully: " + jobId);
+                                    PendingJobManager.removePendingJob(VirtualPrinterService.this, jobId);
+
+                                } catch (Exception e) {
+                                    Log.e(TAG, "Error printing blocked job " + jobId, e);
+                                    activeJob.fail("Print failed: " + e.getMessage());
+                                    PendingJobManager.removePendingJob(VirtualPrinterService.this, jobId);
+                                } finally {
+                                    if (renderer != null) {
+                                        try {
+                                            renderer.close();
+                                        } catch (Exception ignored) {}
+                                    }
+                                    if (pfd != null) {
+                                        try {
+                                            pfd.close();
+                                        } catch (Exception ignored) {}
+                                    }
+                                }
+                            } else {
+                                Log.e(TAG, "Pending job PDF not found: " + file.getAbsolutePath() + ", failing job");
+                                activeJob.fail("Pending job file missing");
+                                PendingJobManager.removePendingJob(VirtualPrinterService.this, jobId);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         backgroundThread = new HandlerThread("PrintServiceBackground");
         backgroundThread.start();
         backgroundHandler = new Handler(backgroundThread.getLooper());
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.antigravity.blututprinter.ACTION_PRINTER_CONNECTED");
+        filter.addAction("com.antigravity.blututprinter.ACTION_COMPLETE_PRINT_JOB");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(printerConnectionReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(printerConnectionReceiver, filter);
+        }
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        try {
+            unregisterReceiver(printerConnectionReceiver);
+        } catch (Exception ignored) {}
         if (backgroundThread != null) {
             backgroundThread.quitSafely();
         }
@@ -109,8 +256,43 @@ public class VirtualPrinterService extends PrintService {
         
         final BluetoothPrinterManager printer = BluetoothPrinterManager.getInstance();
         if (!printer.isConnected()) {
-            Toast.makeText(this, "Virtual Print Failed: Bluetooth Printer is not connected.", Toast.LENGTH_LONG).show();
-            printJob.fail("Bluetooth Printer is not connected.");
+            Toast.makeText(this, "Printer belum terhubung. Menyimpan dokumen ke antrean...", Toast.LENGTH_LONG).show();
+            
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    ParcelFileDescriptor pfd = null;
+                    try {
+                        pfd = printJob.getDocument().getData();
+                        if (pfd == null) {
+                            printJob.fail("No document data");
+                            return;
+                        }
+                        
+                        InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(pfd);
+                        String jobId = printJob.getId().toString();
+                        String jobTitle = printJob.getInfo().getLabel();
+                        if (jobTitle == null || jobTitle.isEmpty()) {
+                            jobTitle = "Print Job";
+                        }
+                        
+                        File tempFile = PendingJobManager.copyPdfToTemp(VirtualPrinterService.this, in, jobId);
+                        PendingJobManager.addPendingJob(VirtualPrinterService.this, jobId, jobTitle, tempFile);
+                        
+                        printJob.block("Waiting for printer connection");
+                        Log.d(TAG, "Offline print job blocked and saved: " + jobId);
+                        
+                        Intent mainIntent = new Intent(VirtualPrinterService.this, MainActivity.class);
+                        mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        mainIntent.putExtra("action", "SETUP_PRINTER_FOR_PRINT");
+                        startActivity(mainIntent);
+                        
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to save offline print job", e);
+                        printJob.fail("Failed to queue job: " + e.getMessage());
+                    }
+                }
+            });
             return;
         }
 

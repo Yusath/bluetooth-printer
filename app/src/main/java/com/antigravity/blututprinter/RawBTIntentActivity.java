@@ -102,7 +102,26 @@ public class RawBTIntentActivity extends AppCompatActivity {
         String action = intent.getAction();
 
         try {
-            if ("com.rawbt.print.ACTION_PRINT".equals(action) || Intent.ACTION_SEND.equals(action)) {
+            if (Intent.ACTION_VIEW.equals(action)) {
+                Uri dataUri = intent.getData();
+                if (dataUri != null && "rawbt".equals(dataUri.getScheme())) {
+                    String uriString = dataUri.toString();
+                    if (uriString.startsWith("rawbt:data:") && uriString.contains(";base64,")) {
+                        int base64StartIndex = uriString.indexOf(";base64,") + 8;
+                        String b64Data = uriString.substring(base64StartIndex);
+                        printData = Base64.decode(b64Data, Base64.DEFAULT);
+                    } else if (dataUri.getQueryParameter("base64") != null) {
+                        String b64 = dataUri.getQueryParameter("base64");
+                        printData = Base64.decode(b64, Base64.DEFAULT);
+                    } else {
+                        String textData = uriString.substring(6);
+                        try {
+                            textData = Uri.decode(textData);
+                        } catch (Exception ignored) {}
+                        printData = textData.getBytes();
+                    }
+                }
+            } else if ("com.rawbt.print.ACTION_PRINT".equals(action) || Intent.ACTION_SEND.equals(action)) {
                 if (intent.hasExtra("bytes")) {
                     printData = intent.getByteArrayExtra("bytes");
                 } 
