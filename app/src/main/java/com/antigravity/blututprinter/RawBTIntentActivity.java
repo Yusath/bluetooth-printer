@@ -113,7 +113,12 @@ public class RawBTIntentActivity extends AppCompatActivity {
                         b64Data = b64Data.replace(" ", "+");
                         try { b64Data = Uri.decode(b64Data); } catch (Exception ignored) {}
                         printData = Base64.decode(b64Data, Base64.DEFAULT);
-                    } else if (dataUri.getQueryParameter("base64") != null) {
+                    } else if (uriString.startsWith("rawbt:base64,")) {
+                        String b64Data = uriString.substring(13); // length of "rawbt:base64," is 13
+                        b64Data = b64Data.replace(" ", "+");
+                        try { b64Data = Uri.decode(b64Data); } catch (Exception ignored) {}
+                        printData = Base64.decode(b64Data, Base64.DEFAULT);
+                    } else if (dataUri.isHierarchical() && dataUri.getQueryParameter("base64") != null) {
                         String b64 = dataUri.getQueryParameter("base64");
                         b64 = b64.replace(" ", "+");
                         try { b64 = Uri.decode(b64); } catch (Exception ignored) {}
