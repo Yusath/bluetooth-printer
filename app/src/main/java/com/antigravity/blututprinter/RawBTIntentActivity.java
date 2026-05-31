@@ -109,9 +109,13 @@ public class RawBTIntentActivity extends AppCompatActivity {
                     if (uriString.startsWith("rawbt:data:") && uriString.contains(";base64,")) {
                         int base64StartIndex = uriString.indexOf(";base64,") + 8;
                         String b64Data = uriString.substring(base64StartIndex);
+                        b64Data = b64Data.replace(" ", "+");
+                        try { b64Data = Uri.decode(b64Data); } catch (Exception ignored) {}
                         printData = Base64.decode(b64Data, Base64.DEFAULT);
                     } else if (dataUri.getQueryParameter("base64") != null) {
                         String b64 = dataUri.getQueryParameter("base64");
+                        b64 = b64.replace(" ", "+");
+                        try { b64 = Uri.decode(b64); } catch (Exception ignored) {}
                         printData = Base64.decode(b64, Base64.DEFAULT);
                     } else {
                         String textData = uriString.substring(6);
@@ -128,6 +132,8 @@ public class RawBTIntentActivity extends AppCompatActivity {
                 else if (intent.hasExtra("base64")) {
                     String b64 = intent.getStringExtra("base64");
                     if (b64 != null) {
+                        b64 = b64.replace(" ", "+");
+                        try { b64 = Uri.decode(b64); } catch (Exception ignored) {}
                         printData = Base64.decode(b64, Base64.DEFAULT);
                     }
                 } 
@@ -155,7 +161,8 @@ public class RawBTIntentActivity extends AppCompatActivity {
                 }
             }
         } catch (Exception e) {
-            tvPrintMessage.setText("Data struk rusak! ❌");
+            Log.e("RawBTIntentActivity", "Error parsing print intent data", e);
+            tvPrintMessage.setText("Data struk rusak! ❌\n" + e.getMessage());
             progressIndicator.setVisibility(View.GONE);
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
@@ -164,7 +171,7 @@ public class RawBTIntentActivity extends AppCompatActivity {
                         finish();
                     }
                 }
-            }, 2500);
+            }, 5000);
             return;
         }
 
