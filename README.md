@@ -11,7 +11,7 @@ Designed with an ultra-lightweight footprint (**&lt; 150 KB**), a premium cybern
 
 *   **Premium Floating UI**: Features a sleek floating navigation capsule with dynamic active tab indicators and gradient status badges.
 *   **Smart BUMS Watermark**: Automatically injects a two-line centered footnote watermark (`BUMS` and `Badan Usaha Milik STIT Riyadhussholihiin`) in small, crisp **Font B** (`ESC M 1`) precisely before any paper cuts or feed commands at the end of receipts to ensure it is never cut off.
-*   **Dual-Protocol Bridge**: Operates a background HTTP server (with full CORS support) and raw TCP sockets on a custom port to process printing transactions directly from web browsers or local POS clients.
+*   **Dual-Protocol Bridge**: Operates a background HTTP server (with full CORS support) and raw TCP sockets on a customs port to process  printing transactions directly from web browsers or local POS clients.
 *   **Data Retention Safeguard**: Utilizes `hasFragileUserData` uninstall protection so your default Bluetooth printer address and server configurations are preserved when updating the app.
 *   **Buffer Throttling**: Implements active data stream throttling to prevent buffer overflows and garbled printouts on budget thermal printer models.
 
