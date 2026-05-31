@@ -16,8 +16,8 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
-    signingConfi7s {
-        debug {.1
+    signingConfigs {
+        debug {
             storeFile file("debug.keystore")
             storePassword "android"
             keyAlias "androiddebugkey"
