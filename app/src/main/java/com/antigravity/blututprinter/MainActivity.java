@@ -229,6 +229,10 @@ public class MainActivity extends AppCompatActivity {
         if (getIntent() != null && "SETUP_PRINTER_FOR_PRINT".equals(getIntent().getStringExtra("action"))) {
             switchTab(0);
         }
+
+        // Auto-start server if previously enabled (defaults to true)
+        boolean serverEnabled = prefs.getBoolean("server_enabled", true);
+        swStartServer.setChecked(serverEnabled);
     }
 
     private void initUI() {
@@ -318,6 +322,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Toggle Server service
         swStartServer.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            prefs.edit().putBoolean("server_enabled", isChecked).apply();
             Intent serviceIntent = new Intent(this, PrintServerService.class);
             if (isChecked) {
                 int port = 6801;

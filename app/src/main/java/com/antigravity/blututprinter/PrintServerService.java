@@ -71,6 +71,23 @@ public class PrintServerService extends Service {
 
         startServer();
 
+        // Auto connect to printer on service start if not connected
+        if (!printerManager.isConnected()) {
+            logEvent("Attempting auto-reconnect to default printer...");
+            printerManager.connectToDefault(this, new BluetoothPrinterManager.ConnectionCallback() {
+                @Override
+                public void onSuccess() {
+                    logEvent("Auto-reconnect to default printer successful.");
+                    updateNotification("Printer bridge is running on port " + port + " (Connected)");
+                }
+
+                @Override
+                public void onFailure(String message) {
+                    logEvent("Auto-reconnect failed: " + message);
+                }
+            });
+        }
+
         return START_STICKY;
     }
 
@@ -375,5 +392,32 @@ public class PrintServerService extends Service {
         if (manager != null) {
             manager.notify(NOTIFICATION_ID, buildNotification(contentText));
         }
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        if (isRunning) {
+            logEvent("Task removed from Recents. Re-starting PrintServerService in 1 second to keep it alive...");
+            
+            Intent restartServiceIntent = new Intent(getApplicationContext(), this.getClass());
+            restartServiceIntent.setPackage(getPackageName());
+            
+            PendingIntent restartServicePendingIntent = PendingIntent.getService(
+                    getApplicationContext(), 
+                    1, 
+                    restartServiceIntent, 
+                    PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE
+            );
+            
+            android.app.AlarmManager alarmService = (android.app.AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+            if (alarmService != null) {
+                alarmService.set(
+                        android.app.AlarmManager.RTC, 
+                        android.os.SystemClock.elapsedRealtime() + 1000, 
+                        restartServicePendingIntent
+                );
+            }
+        }
+        super.onTaskRemoved(rootIntent);
     }
 }
